@@ -70,10 +70,12 @@ public class BlockTransaction implements Transaction {
 			}
 		}
 		
-		if (include_removed_blocks) {
-			for (Entry<UUID, BlockTransactionLine> entry : trans.entrySet()) {
-				if (!entry.getValue().isCommitted() && Bukkit.getEntity(entry.getKey()) == null) entry.getValue().commit(null);
-			}
+		if (include_removed_blocks) includeRemovedBlocks();
+	}
+	
+	public void includeRemovedBlocks() {
+		for (Entry<UUID, BlockTransactionLine> entry : trans.entrySet()) {
+			if (!entry.getValue().isCommitted() && Bukkit.getEntity(entry.getKey()) == null) entry.getValue().commit(null);
 		}
 	}
 	

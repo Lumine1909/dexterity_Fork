@@ -34,8 +34,8 @@ public class Mask {
 		return s.toString();
 	}
 	
-	public Mask(Material m) {
-		blocks.add(m);
+	public Mask(Material... materials) {
+		for (Material m : materials) blocks.add(m);
 	}
 	
 	public void setNegative(boolean b) {

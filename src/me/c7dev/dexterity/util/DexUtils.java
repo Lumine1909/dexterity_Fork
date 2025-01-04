@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -15,11 +14,9 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.Snow;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.Matrix3d;
 import org.joml.Quaterniond;
@@ -28,9 +25,6 @@ import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import com.sk89q.worldedit.math.BlockVector3;
-
-import me.c7dev.dexterity.Dexterity;
-import me.c7dev.dexterity.api.DexterityAPI;
 
 /**
  * Defines commonly used static methods used globally in the plugin or API
@@ -364,6 +358,7 @@ public class DexUtils {
 		case IRON_BARS: return new Vector(0.125, 1, 0.125);
 		case END_PORTAL_FRAME: return new Vector(1, 13.0/16, 1);
 		case FLOWER_POT: return new Vector(0.375, 0.375, 0.357);
+		case CAKE: return new Vector(0.875, 0.5, 0.875);
 		case POTTED_BROWN_MUSHROOM:
 		case POTTED_RED_MUSHROOM: return new Vector(0.375, 9.0/16, 0.375);
 		case POTTED_CACTUS: return new Vector(0.375, 1, 0.375);

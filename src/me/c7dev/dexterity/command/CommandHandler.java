@@ -17,10 +17,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import org.joml.Quaterniond;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import me.c7dev.dexterity.DexSession;
@@ -51,7 +48,6 @@ import me.c7dev.dexterity.util.DexUtils;
 import me.c7dev.dexterity.util.DexterityException;
 import me.c7dev.dexterity.util.InteractionCommand;
 import me.c7dev.dexterity.util.Mask;
-import me.c7dev.dexterity.util.RollOffset;
 import me.c7dev.dexterity.util.RotationPlan;
 
 /**
@@ -436,25 +432,18 @@ public class CommandHandler {
 				return;
 			}
 			
-			BlockTransaction t = new BlockTransaction(d, new Mask(from));
+			Mask mask = new Mask(from);
+			BlockTransaction t = new BlockTransaction(d, mask);
 			if (to == Material.AIR) {
-				List<DexBlock> remove = new ArrayList<>();
-				for (DexBlock db : d.getBlocks()) {
-					if (db.getEntity().getBlock().getMaterial() == from) {
-						t.commitBlock(db);
-						remove.add(db);
-					}
-				}
-				for (DexBlock db : remove) {
-					db.remove();
-				}
+				for (DexBlock db : d.getBlocks()) if (db.getEntity().getBlock().getMaterial() == from) db.remove();
+				t.commit(d.getBlocks(), mask, true);
 			} else {
 				BlockData todata = Bukkit.createBlockData(to);
 				for (DexBlock db : d.getBlocks()) {
 					if (db.getEntity().getBlock().getMaterial() == from) {
-						t.commitBlock(db);
 						if (!plugin.isLegacy()) db.getEntity().getBlock().copyTo(todata);
 						db.getEntity().setBlock(todata);
+						t.commitBlock(db);
 					}
 				}
 			}
