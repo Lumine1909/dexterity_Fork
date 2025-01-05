@@ -1,5 +1,5 @@
 name: Dexterity
-version: 1.4.4
+version: 1.4.5
 author: c7dev
 main: me.c7dev.dexterity.Dexterity
 api-version: 1.19
@@ -22,6 +22,8 @@ permissions:
     description: Access to debug commands or actions that should only be given to admins
   dexterity.maxvolume.\#:
     description: Replace \# with a number to set a maximum volume or entity selection count
+  dexterity.nocmddelay:
+    description: Exempt from the cooldown delay on the main command
   dexterity.command.*:
     description: Access the /d command
     children:

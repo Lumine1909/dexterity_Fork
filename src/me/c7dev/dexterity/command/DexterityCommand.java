@@ -1,7 +1,9 @@
 package me.c7dev.dexterity.command;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -10,6 +12,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import me.c7dev.dexterity.DexSession;
 import me.c7dev.dexterity.Dexterity;
@@ -25,6 +28,8 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 	private Dexterity plugin;
 	private String cc, cc2;
 	private CommandHandler handler;
+	private HashMap<UUID, Long> cmd_delay = new HashMap<>();
+	private long cmd_delay_ms;
 	
 	private String[] commands = {
 		"align", "axis", "clone", "command", "consolidate", "convert", "deconvert", "deselect", "glow", "highlight", "info", "list", "mask", 
@@ -39,6 +44,7 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		cc = plugin.getChatColor();
 		cc2 = plugin.getChatColor2();
 		plugin.getCommand("dex").setExecutor(this);
+		cmd_delay_ms = (long) Math.max(plugin.getConfig().getDouble("command-cooldown-seconds", 0.5) * 1000, 0);
 		
 		handler = new CommandHandler(plugin);
 		
@@ -46,6 +52,25 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 			descriptions[i] = plugin.getConfigString(commands[i] + "-description");
 			command_strs[i] = cc + "- " + cc2 + "/d " + commands[i] + " §8- " + cc + descriptions[i];
 		}
+	}
+	
+	public boolean cmdDelay(Player p) {
+		UUID u = p.getUniqueId();
+		double since_last = System.currentTimeMillis() - cmd_delay.getOrDefault(u, 0l);
+		if (since_last < cmd_delay_ms) {
+			int rem = (int) Math.ceil((cmd_delay_ms - since_last)/1000.0);
+			p.sendMessage(plugin.getConfigString("command-cooldown").replaceAll("\\Q%remaining%\\E", "" + rem));
+			return true;
+		}
+		final long newdelay = System.currentTimeMillis() + cmd_delay_ms;
+		cmd_delay.put(u, newdelay);
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				if (cmd_delay.getOrDefault(u, 0l) == newdelay) cmd_delay.remove(u);
+			}
+		}.runTaskLater(plugin, (int) (cmd_delay_ms*0.02));
+		return false;
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -65,6 +90,8 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 			p.sendMessage(plugin.getConfigString("no-permission"));
 			return true;
 		}
+		
+		if (!p.hasPermission("dexterity.nocmddelay") && cmdDelay(p)) return true;
 		
 		args[0] = args[0].toLowerCase();
 		CommandContext ctx = new CommandContext(plugin, p, args);

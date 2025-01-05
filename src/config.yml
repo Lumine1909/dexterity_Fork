@@ -1,19 +1,19 @@
 
-#----------------------------------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------------------------------#
 #
 #                                                       Dexterity by c7dev
 #
 #    Thank you for downloading Dexterity! This plugin is intended to make your worlds pop with the power of block displays. 
 #    Dexterity lets you easily move, scale, and rotate block displays without the hassle!
 #
-#   If you have a question, suggestion, feedback, etc., please join the discord! https://discord.gg/yx9hUByTzq
+#    If you have a question, suggestion, feedback, etc., please join the discord! https://discord.gg/yx9hUByTzq
 #
-#   Get started with /d convert or /d help!
-#   Full command list, wiki, aliases, and API docs: https://github.com/standardProton/dexterity_wiki/wiki
+#    Get started with /d convert or /d help!
+#    Full command list, wiki, aliases, and API docs: https://github.com/standardProton/dexterity_wiki/wiki
 #
-#   Please consider writing a review if you like the plugin :D
+#    Please consider writing a review if you like the plugin :D
 #
-#----------------------------------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------------------------------------#
 
 lang-file: "en-US.yml"
 primary-color: "#7a8c86" #Default: #7a8c86
@@ -22,3 +22,4 @@ tertiary-color: "#42f5ef" #Default: #42f5ef
 
 max-selection-volume: 25000 #for tps safety
 session-history-size: 15 #maximum number of transactions to store
+command-cooldown-seconds: 0.5 #keep cooldown low for good user experience

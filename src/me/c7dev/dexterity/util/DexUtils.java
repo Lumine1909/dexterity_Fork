@@ -359,12 +359,24 @@ public class DexUtils {
 		case END_PORTAL_FRAME: return new Vector(1, 13.0/16, 1);
 		case FLOWER_POT: return new Vector(0.375, 0.375, 0.357);
 		case CAKE: return new Vector(0.875, 0.5, 0.875);
+		case RED_MUSHROOM: return new Vector(0.5, 7.0/16, 0.5);
+		case BROWN_MUSHROOM: return new Vector(0.5, 0.5, 0.5);
+		case LILY_OF_THE_VALLEY:
+		case CRIMSON_FUNGUS: return new Vector(0.625, 0.75, 0.625);
+		case WARPED_FUNGUS: return new Vector(0.625, 9.0/16, 0.625);
+		case DANDELION:
 		case POTTED_BROWN_MUSHROOM:
 		case POTTED_RED_MUSHROOM: return new Vector(0.375, 9.0/16, 0.375);
 		case POTTED_CACTUS: return new Vector(0.375, 1, 0.375);
 		case NETHER_PORTAL: return new Vector(1, 1, 0.25);
 		case PINK_PETALS: return new Vector(1, 3.0/16, 1);
 		case DAYLIGHT_DETECTOR: return new Vector(1, 0.375, 1);
+		case RED_TULIP:
+		case ORANGE_TULIP:
+		case WHITE_TULIP:
+		case PINK_TULIP: return new Vector(0.375, 13.0/16, 0.375);
+		case POPPY:
+		case WITHER_ROSE:
 		case LANTERN:
 		case SOUL_LANTERN: return new Vector(0.375, 11.0/16, 0.375);
 		case BELL:

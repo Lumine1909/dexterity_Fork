@@ -472,6 +472,7 @@ public class Schematic {
 			}
 			
 			for (DexBlockState state : display.getBlocks()) {
+				state.getLocation().setWorld(loc.getWorld());
 				state.setDisplay(working_disp);
 				new DexBlock(state, locv);
 			}
