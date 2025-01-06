@@ -231,8 +231,8 @@ public class DexterityAPI {
 				
 		Vector[][] basis_vecs_norot = getBasisVecs(new Matrix3d(1, 0, 0, 0, 1, 0, 0, 0, 1));
 		Vector east_unit = new Vector(1, 0, 0), up_unit = new Vector(0, 1, 0), south_unit = new Vector(0, 0, 1);
-									
-		for (Entity entity : near) {
+		
+		bd_loop: for (Entity entity : near) {
 			if (!(entity instanceof BlockDisplay) || markerPoints.contains(entity.getUniqueId())) continue;
 			BlockDisplay e = (BlockDisplay) entity;
 			Vector scale_raw = DexUtils.vector(e.getTransformation().getScale());
@@ -271,7 +271,7 @@ public class DexterityAPI {
 			}
 			
 			//if rotated, we need to transform the displacement vecs and basis vectors accordingly
-			if (e.getLocation().getYaw() != 0 || e.getLocation().getPitch() != 0 || e.getTransformation().getLeftRotation().w != 0) {
+			if (e.getLocation().getYaw() != 0 || e.getLocation().getPitch() != 0 || e.getTransformation().getLeftRotation().w != 1) {
 				
 				OrientationKey key = new OrientationKey(e.getLocation().getYaw(), e.getLocation().getPitch(), e.getTransformation().getLeftRotation());
 				Vector[] res = axes.get(key);
@@ -321,10 +321,8 @@ public class DexterityAPI {
 
 			Vector[] locs = {up, down, south, north, east, west};
 						
-//			plugin.api().markerPoint(loc, Color.AQUA, 4);
-			
+			boolean first_face = false; //always intersects 2 faces - convex
 			for (int i = 0; i < locs.length; i++) {
-//				plugin.api().markerPoint(DexUtils.location(loc.getWorld(), locs[i]), Color.LIME, 4);
 				
 				Vector basis1 = basis_vecs[i][0];
 				Vector basis2 = basis_vecs[i][1];
@@ -357,7 +355,7 @@ public class DexterityAPI {
 					if (Math.abs(c.getX()) > scale.getZ()) continue;
 					if (Math.abs(c.getY()) > scale.getY()) continue;
 				}
-								
+				
 				if (dist < mindist) {
 					Vector raw_offset = basis1.clone().multiply(c.getX())
 							.add(basis2.clone().multiply(c.getY()));
@@ -368,6 +366,9 @@ public class DexterityAPI {
 							loc, up_dir, east_dir, south_dir, dist);
 					if (ro != null) nearest.setRollOffset(ro);
 				}
+				
+				if (first_face) continue bd_loop;
+				else first_face = true;
 			}	
 		}
 		
