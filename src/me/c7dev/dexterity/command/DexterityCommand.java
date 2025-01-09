@@ -119,6 +119,9 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		case "debug:kill":
 			handler.debug_kill(ctx);
 			return true;
+		case "debug:purgeunloaded":
+			handler.debug_purgeunloaded(ctx);
+			return true;
 		case "paste":
 		case "set":
 		case "p":
@@ -348,6 +351,9 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		case "seat":
 			ret.add("y_offset=");
 			return ret;
+		case "reload":
+			ret.add("-saved_displays");
+			return ret;
 		case "clone":
 			ret.add("-nofollow");
 			ret.add("-merge");
@@ -472,6 +478,7 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 				ret.add("debug:testnear");
 				ret.add("debug:resettransformation");
 				ret.add("debug:kill");
+				ret.add("debug:purgeunloaded");
 				return ret;
 			}
 		}

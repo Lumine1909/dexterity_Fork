@@ -243,6 +243,11 @@ public class CommandHandler {
 		}
 	}
 	
+	public void debug_purgeunloaded(CommandContext ct) {
+		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
+		plugin.purgeUnloadedDisplays();
+	}
+	
 	public void paste(CommandContext ct) {
 		DexSession session = ct.getSession();
 		if (session.getEditType() != null) {
@@ -406,7 +411,10 @@ public class CommandHandler {
 	
 	public void reload(CommandContext ct) {
 		if (!withPermission(ct.getPlayer(), "admin")) return;
-		plugin.reload();
+		
+		if (ct.getFlags().contains("saved_displays")) plugin.reloadDisplays();
+		else plugin.reload();
+		
 		ct.getPlayer().sendMessage(plugin.getConfigString("reload-success"));
 	}
 	

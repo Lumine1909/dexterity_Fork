@@ -1,6 +1,8 @@
 package me.c7dev.dexterity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
 
@@ -10,6 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,6 +22,8 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -291,6 +296,11 @@ public class EventListeners implements Listener {
 			if (e.getTransaction() instanceof RemoveTransaction) e.getSession().setShowingAxes(null);
 			else e.getSession().updateAxisDisplays();
 		}
+	}
+	
+	@EventHandler
+	public void onChunkLoad(ChunkLoadEvent e) {
+		plugin.processUnloadedDisplaysInChunk(e.getChunk());
 	}
 	
 	@EventHandler

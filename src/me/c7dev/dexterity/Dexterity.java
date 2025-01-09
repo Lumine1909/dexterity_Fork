@@ -17,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -56,13 +57,14 @@ public class Dexterity extends JavaPlugin {
 	private HashMap<String,DexterityDisplay> displays = new HashMap<>();
 	private HashMap<UUID,DexSession> sessions = new HashMap<>();
 	private HashMap<UUID,DexBlock> display_map = new HashMap<>();
+	private HashMap<UUID, String> unloaded_uuids = new HashMap<>();
 	private FileConfiguration lang, defaultLang;
 	
 	private String chat_color, chat_color2, chat_color3;
 	private DexterityAPI api;
 	private int max_volume = 25000;
 	private WorldEditPlugin we = null;
-	private boolean legacy = false;
+	private boolean legacy = false, has_unloaded_displays = false;
 	
 	public static final String defaultLangName = "en-US.yml";
 		
@@ -83,12 +85,12 @@ public class Dexterity extends JavaPlugin {
 		Plugin we_plugin = Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
 		if (we_plugin != null) we = (WorldEditPlugin) we_plugin;
 		
-		new BukkitRunnable() {
+		new BukkitRunnable() { //load post-world, once scheduler is running
 			@Override
 			public void run() {
-				loadDisplays();				
+				loadDisplays();
 			}
-		}.runTask(this);
+		}.runTaskLater(this, 1l);
 		
 		File schem = new File(getDataFolder().getAbsolutePath() + "/schematics");
 		if (!schem.exists()) schem.mkdirs();
@@ -297,14 +299,22 @@ public class Dexterity extends JavaPlugin {
 		}
 	}
 	
-	private void purgeHelper(DexterityDisplay d) {
-		if (d.getBlocksCount() > 0) return;
-		if (d.getSubdisplayCount() == 0) d.remove(false);
-		else {
-			for (DexterityDisplay sub : d.getSubdisplays()) purgeHelper(sub);
-		}
+	/**
+	 * Reload the files in the saved displays folder
+	 */
+	public void reloadDisplays() {
+		saveDisplays();
+		loadDisplays();
 	}
 	
+	public File getDisplayFile(String label) {
+		return new File(this.getDataFolder().getAbsolutePath() + "/displays/" + label + ".yml");
+	}
+	
+	/**
+	 * Loads all saved displays
+	 * @return The number of displays that were just loaded
+	 */
 	private int loadDisplays() {
 		File folder = new File(this.getDataFolder().getAbsolutePath() + "/displays/");
 		if (!folder.exists()) {
@@ -314,112 +324,109 @@ public class Dexterity extends JavaPlugin {
 		
 		displays.clear();
 		sessions.clear();
-		int display_count = 0;
+		int display_curr_size = displays.size();
 		
 		try {
 			
-			for (File f : folder.listFiles()) {
-				if (!f.getName().endsWith(".yml")) continue;
-				String label = f.getName().replaceAll("\\.yml", "");
- 			
-				FileConfiguration afile = YamlConfiguration.loadConfiguration(f);
-
-				//load entities by uuid
-				List<BlockDisplay> blocks = new ArrayList<>();
-				boolean missing_blocks = false;
-				for (String uuid : afile.getStringList("uuids")) {
-					Entity entity = Bukkit.getEntity(UUID.fromString(uuid));
-					if (entity != null && entity instanceof BlockDisplay) {
-						blocks.add((BlockDisplay) entity);
-					} else missing_blocks = true;
-				}
-				if (missing_blocks) {
-					Bukkit.getLogger().warning("Some of the blocks for display '" + label + "' are missing!");
-				}
-
-				//basic metadata
-				Location center = DexUtils.deserializeLocation(afile, "center");
-				double sx = afile.getDouble("scale-x");
-				double sy = afile.getDouble("scale-y");
-				double sz = afile.getDouble("scale-z");
-				float base_yaw = (float) afile.getDouble("yaw");
-				float base_pitch = (float) afile.getDouble("pitch");
-				float base_roll = (float) afile.getDouble("roll");
-				Vector scale = new Vector(sx == 0 ? 1 : sx, sy == 0 ? 1 : sy, sz == 0 ? 1 : sz);
-				DexterityDisplay disp = new DexterityDisplay(this, center, scale, label);
-				disp.setBaseRotation(base_yaw, base_pitch, base_roll);
-				
-				for (BlockDisplay bd : blocks) {
-					disp.addBlock(new DexBlock(bd, disp));
-				}
-				
-				//get click commands
-				ConfigurationSection cmd_section = afile.getConfigurationSection("commands");
-				if (cmd_section != null) {
-					for (String key : cmd_section.getKeys(false)) {
-						disp.addCommand(new InteractionCommand(afile.getConfigurationSection("commands." + key)));
-					}
-				}
-				
-				double seat_y_offset = afile.getDouble("seat-offset", Double.MAX_VALUE);
-				if (seat_y_offset < Double.MAX_VALUE) {
-					SitAnimation a = new SitAnimation(disp);
-					if (seat_y_offset != 0) a.setSeatOffset(new Vector(0, seat_y_offset, 0));
-					disp.addAnimation(a);
-				}
-				
-				List<String> owner_uuids = afile.getStringList("owners");
-				if (owner_uuids != null && owner_uuids.size() > 0) {
-					List<OfflinePlayer> owners = new ArrayList<>();
-					for (String u : owner_uuids) {
-						OfflinePlayer op = Bukkit.getOfflinePlayer(UUID.fromString(u));
-						if (op == null || op.getName() == null) continue;
-						owners.add(op);
-					}
-					disp.setOwners(owners);
-				}
-				
-				new BukkitRunnable() {
-					@Override
-					public void run() {
-						HashMap<OrientationKey, RollOffset> cache = new HashMap<>();
-						for (DexBlock db : disp.getBlocks()) {
-							db.loadRoll(cache);
-						}
-					}
-				}.runTaskAsynchronously(this);
-
-				//set parent display
-				String parent_label = afile.getString("parent");
-				if (parent_label != null) {
-					DexterityDisplay parent = getDisplay(parent_label);
-					if (parent == null) Bukkit.getLogger().severe("Could not find parent display '" + parent_label + "'!");
-					else {
-						parent.addSubdisplay(disp);
-						disp.setParent(parent);
-					}
-				}
-
-				displays.put(disp.getLabel(), disp);
-			}
-
-			//purge empty displays if any were loaded
-			List<DexterityDisplay> allRootNodes = new LinkedList<>();
-			int i = 0;
-			for (Entry<String,DexterityDisplay> entry : displays.entrySet()) {
-				if (entry.getValue().getParent() != null) continue;
-				allRootNodes.add(entry.getValue());
-				i++;
-			}
-			for (DexterityDisplay disp : allRootNodes) purgeHelper(disp);
-
-			return display_count;
-
+			for (File f : folder.listFiles()) loadDisplay(f, true);
+			return displays.size() - display_curr_size;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			Bukkit.getLogger().severe("Could not load Dexterity displays!");
 			return 0;
 		}
+	}
+	
+	private void loadDisplay(File f, boolean verbose) {
+		if (f == null || !f.getName().endsWith(".yml")) return;
+		String label = f.getName().replaceAll("\\.yml", "");
+		
+		FileConfiguration afile = YamlConfiguration.loadConfiguration(f);
+
+		//load entities by uuid
+		List<BlockDisplay> blocks = new ArrayList<>();
+		boolean missing_blocks = false;
+		for (String uuid_str : afile.getStringList("uuids")) {
+			UUID uuid = UUID.fromString(uuid_str);
+			Entity entity = Bukkit.getEntity(uuid);
+			
+			if (entity != null && entity instanceof BlockDisplay) {
+				blocks.add((BlockDisplay) entity);
+			} else {
+				unloaded_uuids.put(uuid, label);
+				has_unloaded_displays = true;
+				missing_blocks = true;
+			}
+		}
+		if (missing_blocks) {
+			if (verbose) Bukkit.getLogger().warning("Some of the entities for display '" + label + "' are unloaded!");
+			return;
+		}
+		
+		//basic metadata
+		Location center = DexUtils.deserializeLocation(afile, "center");
+		double sx = afile.getDouble("scale-x");
+		double sy = afile.getDouble("scale-y");
+		double sz = afile.getDouble("scale-z");
+		float base_yaw = (float) afile.getDouble("yaw");
+		float base_pitch = (float) afile.getDouble("pitch");
+		float base_roll = (float) afile.getDouble("roll");
+		Vector scale = new Vector(sx == 0 ? 1 : sx, sy == 0 ? 1 : sy, sz == 0 ? 1 : sz);
+		DexterityDisplay disp = new DexterityDisplay(this, center, scale, label);
+		disp.setBaseRotation(base_yaw, base_pitch, base_roll);
+		
+		for (BlockDisplay bd : blocks) {
+			disp.addBlock(new DexBlock(bd, disp));
+		}
+		
+		//get click commands
+		ConfigurationSection cmd_section = afile.getConfigurationSection("commands");
+		if (cmd_section != null) {
+			for (String key : cmd_section.getKeys(false)) {
+				disp.addCommand(new InteractionCommand(afile.getConfigurationSection("commands." + key)));
+			}
+		}
+		
+		double seat_y_offset = afile.getDouble("seat-offset", Double.MAX_VALUE);
+		if (seat_y_offset < Double.MAX_VALUE) {
+			SitAnimation a = new SitAnimation(disp);
+			if (seat_y_offset != 0) a.setSeatOffset(new Vector(0, seat_y_offset, 0));
+			disp.addAnimation(a);
+		}
+		
+		List<String> owner_uuids = afile.getStringList("owners");
+		if (owner_uuids != null && owner_uuids.size() > 0) {
+			List<OfflinePlayer> owners = new ArrayList<>();
+			for (String u : owner_uuids) {
+				OfflinePlayer op = Bukkit.getOfflinePlayer(UUID.fromString(u));
+				if (op == null || op.getName() == null) continue;
+				owners.add(op);
+			}
+			disp.setOwners(owners);
+		}
+		
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				HashMap<OrientationKey, RollOffset> cache = new HashMap<>();
+				for (DexBlock db : disp.getBlocks()) {
+					db.loadRoll(cache);
+				}
+			}
+		}.runTaskAsynchronously(this);
+
+		//set parent display
+		String parent_label = afile.getString("parent");
+		if (parent_label != null) {
+			DexterityDisplay parent = getDisplay(parent_label);
+			if (parent == null && verbose) Bukkit.getLogger().severe("Could not find parent display '" + parent_label + "'!");
+			else {
+				parent.addSubdisplay(disp);
+				disp.setParent(parent);
+			}
+		}
+
+		displays.put(disp.getLabel(), disp);
 	}
 	
 	public void saveDisplays() {
@@ -502,6 +509,92 @@ public class Dexterity extends JavaPlugin {
 		}
 		
 		for (DexterityDisplay sub : disp.getSubdisplays()) saveDisplay(sub);
+	}
+	
+	/**
+	 * Searches for missing block displays once the chunk has been loaded by a player
+	 * @param c
+	 */
+	public void processUnloadedDisplaysInChunk(Chunk c) {
+		if (!has_unloaded_displays) return;
+		
+		Set<String> unloaded_labels = new HashSet<>();
+		for (Entity entity : c.getEntities()) {
+			if (!(entity instanceof BlockDisplay)) continue;
+			String label = unloaded_uuids.get(entity.getUniqueId());
+			if (label != null && !unloaded_labels.contains(label)) unloaded_labels.add(label);
+		}
+		
+		for (String label : unloaded_labels) { //possible displays that can now be loaded
+			File f = getDisplayFile(label);
+			loadDisplay(f, true); //won't load if not all displays are there
+			DexterityDisplay d = getDisplay(label);
+			if (d != null) {
+				for (DexBlock db : d.getBlocks()) unloaded_uuids.remove(db.getEntity().getUniqueId());
+			}
+		}
+		
+		if (unloaded_uuids.size() == 0) has_unloaded_displays = false;
+	}
+	
+	/**
+	 * Returns true if it is possible that there is a display that is not loaded due to the server requiring a player to load the chunk's entities
+	 * @return
+	 */
+	public boolean hasUnloadedDisplays() {
+		return has_unloaded_displays;
+	}
+	
+	/**
+	 * Deletes unneeded display files that do not have any blocks loaded
+	 * @return The number of files that were purged
+	 */
+	public int purgeUnloadedDisplays() {
+		int count = 0;
+		
+		List<DexterityDisplay> allRootNodes = new LinkedList<>();
+		for (Entry<String,DexterityDisplay> entry : displays.entrySet()) {
+			if (entry.getValue().getParent() != null) continue;
+			allRootNodes.add(entry.getValue());
+		}
+		for (DexterityDisplay disp : allRootNodes) {
+			if (purgeHelper(disp)) count++;
+		}
+		
+		has_unloaded_displays = false;
+		List<String> unique_labels = new ArrayList<>();
+		unloaded_uuids.entrySet().forEach(e -> {
+			if (!unique_labels.contains(e.getValue())) unique_labels.add(e.getValue());
+		});
+		unloaded_uuids.clear();
+		for (String label : unique_labels) {
+			File f = getDisplayFile(label);
+			try {
+				if (f != null) {
+					f.delete();
+					count++;
+				}
+			} catch (Exception ex) {
+				
+			}
+		}
+		
+		Bukkit.getLogger().warning("Purged " + count + " saved display files that could not be loaded");
+		return count;
+	}
+	
+	private boolean purgeHelper(DexterityDisplay d) {
+		for (DexBlock db : d.getBlocks()) if (Bukkit.getEntity(db.getUniqueId()) != null) return false;
+		
+		boolean r = false;
+		if (d.getSubdisplayCount() == 0) { //don't remove parent displays even if they have no blocks
+			d.remove(false);
+			r = true;
+		}
+		else {
+			for (DexterityDisplay sub : d.getSubdisplays()) r = purgeHelper(sub) || r;
+		}
+		return r;
 	}
 	
 	/**
