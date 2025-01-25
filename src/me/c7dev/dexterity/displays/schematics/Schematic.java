@@ -457,17 +457,18 @@ public class Schematic {
 	 */
 	public DexterityDisplay paste(Location loc) {
 		if (!loaded) throw new DexterityException("This schematic did not load! Cannot paste.");
+		loc = loc.clone();
 		DexterityDisplay d = null;
 		Vector locv = loc.toVector();
 		
 		for (SimpleDisplayState display : displays) {
 			DexterityDisplay working_disp;
 			if (d == null) {
-				d = new DexterityDisplay(plugin, loc, new Vector(1, 1, 1), display.getLabel());
+				d = new DexterityDisplay(plugin, loc, new Vector(1, 1, 1), plugin.getNextLabel(display.getLabel()));
 				working_disp = d;
 			}
 			else {
-				working_disp = new DexterityDisplay(plugin, loc, new Vector(1, 1, 1), display.getLabel());
+				working_disp = new DexterityDisplay(plugin, loc, new Vector(1, 1, 1), plugin.getNextLabel(display.getLabel()));
 				d.addSubdisplay(working_disp);
 			}
 			

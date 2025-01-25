@@ -66,6 +66,14 @@ public class DexterityAPI {
 	public DexterityAPI(Dexterity plugin) {
 		this.plugin = plugin;
 	}
+	
+	/**
+	 * Returns an instance of the plugin main class
+	 * @return
+	 */
+	public Dexterity getPlugin() {
+		return plugin;
+	}
 
 	public static DexterityAPI getInstance() {
 		return Dexterity.getPlugin(Dexterity.class).api();

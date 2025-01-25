@@ -443,6 +443,13 @@ public class DexRotation {
 	}
 	
 	/**
+	 * Clears the queue of scheduled rotations
+	 */
+	public void clearQueue() {
+		queue.clear();
+	}
+	
+	/**
 	 * Get the data used for the previous rotation
 	 * @return Unmodifiable object containing quaternion, transaction, and async boolean
 	 */
