@@ -1304,7 +1304,6 @@ public class CommandHandler {
 		HashMap<String, Double> attrsd = ct.getDoubleAttrs();
 		Player p = ct.getPlayer();
 		
-		ScaleTransaction t = new ScaleTransaction(d);
 		Vector scale = new Vector();
 		String scale_str;
 		if (attrsd.containsKey("x") || attrsd.containsKey("y") || attrsd.containsKey("z")) {
@@ -1331,7 +1330,28 @@ public class CommandHandler {
 			scale = new Vector(scalar, scalar, scalar);
 		}
 		
+		ScaleTransaction t = new ScaleTransaction(d);
 		try {
+			Vector curr_scale = d.getScale();
+			Vector new_scale = set ? 
+					new Vector(scale.getX() / curr_scale.getX(), scale.getY() / curr_scale.getY(), scale.getZ() / curr_scale.getZ()) 
+					: scale.clone();
+			
+			double max_scale = plugin.getConfig().getDouble("max-scale"), min_scale = plugin.getConfig().getDouble("min-scale");
+			if (max_scale > 1 || min_scale > 0) {
+				for (DexBlock db : d.getBlocks()) {
+					Vector db_scale = DexUtils.hadimard(new_scale, db.getTransformation().getScale());
+					if (max_scale > 1 && DexUtils.max(db_scale) > max_scale) {
+						p.sendMessage(getConfigString("cannot-exceed-scale-limit", session));
+						return;
+					}
+					if (min_scale > 0 && DexUtils.min(new_scale) < min_scale) {
+						p.sendMessage(getConfigString("cannot-exceed-scale-limit", session));
+						return;
+					}
+				}
+			}
+			
 			if (set) {
 				d.setScale(scale);
 				p.sendMessage(getConfigString("scale-success-set", session).replaceAll("\\Q%scale%\\E", scale_str));

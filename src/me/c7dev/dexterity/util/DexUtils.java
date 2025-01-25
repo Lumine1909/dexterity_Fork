@@ -42,6 +42,20 @@ public class DexUtils {
 		return item;
 	}
 	
+	public static double max(Vector v) {
+		double m = v.getX();
+		if (v.getY() > m) m = v.getY();
+		if (v.getZ() > m) m = v.getZ();
+		return m;
+	}
+	
+	public static double min(Vector v) {
+		double m = v.getX();
+		if (v.getY() < m) m = v.getY();
+		if (v.getZ() < m) m = v.getZ();
+		return m;
+	}
+	
 	public static String round(double d, int decimals) {
 		StringBuilder hashs = new StringBuilder();
 		for (int i = 0; i < decimals; i++) hashs.append('#');

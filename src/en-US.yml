@@ -65,6 +65,7 @@ console-exception: "&4Error: &cCould not perform this operation! Check the conso
 file-already-exists: "&4Error: &cFile '%input%' already exists!"
 file-not-found: "&4Error: &cThis file does not exist!"
 player-not-found: "&4Error: &cCould not find player %player%!"
+cannot-exceed-scale-limit: "&4Error: &cCannot exceed maximum or minimum scale limit!"
 
 #Success strings
 align-success: "&^Aligned %loclabel%!"
