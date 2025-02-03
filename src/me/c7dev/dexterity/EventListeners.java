@@ -89,7 +89,7 @@ public class EventListeners implements Listener {
 			DexSession session = plugin.getEditSession(e.getPlayer().getUniqueId());
 			DexterityDisplay clicked_display = null;
 			DexBlock clicked_db = null;
-			boolean holding_wand = hand.getType() == Material.WOODEN_AXE || (hand.getType() == Material.BLAZE_ROD && hand.getItemMeta().getDisplayName().equals(plugin.getConfigString("wand-title", "§fDexterity Wand")));
+			boolean holding_wand = hand.getType() == Material.WOODEN_AXE || (hand.getType() == plugin.getWandType() && hand.getItemMeta().getDisplayName().equals(plugin.getConfigString("wand-title", "§fDexterity Wand")));
 
 			if (clicked != null) {
 				if (clicked.getBlockDisplay().getMetadata("dex-ignore").size() > 0) return;

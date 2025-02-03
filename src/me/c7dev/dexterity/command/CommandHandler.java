@@ -172,7 +172,7 @@ public class CommandHandler {
 	
 	public void wand(CommandContext ct) {
 		if (!withPermission(ct.getPlayer(), "wand")) return;
-		ItemStack wand = new ItemStack(Material.BLAZE_ROD);
+		ItemStack wand = new ItemStack(plugin.getWandType());
 		ItemMeta meta = wand.getItemMeta();
 		meta.setDisplayName(plugin.getConfigString("wand-title", "§fDexterity Wand"));
 		wand.setItemMeta(meta);
@@ -320,8 +320,10 @@ public class CommandHandler {
 		DexterityDisplay d = getSelected(session, "move");
 		if (d == null) return;
 		
+		boolean to_center = ct.getFlags().contains("center");
+		
 		BlockTransaction t = new BlockTransaction(d);
-		d.align();
+		d.align(to_center);
 		t.commit(d.getBlocks());
 		session.pushTransaction(t);
 		

@@ -20,6 +20,7 @@ primary-color: "#7a8c86" #Default: #7a8c86
 secondary-color: "#21de80" #Default: #21de80
 tertiary-color: "#42f5ef" #Default: #42f5ef
 
+wand-item: BLAZE_ROD #wand given by /d wand command, plugin will also work with the normal WorldEdit wand
 max-scale: 20 #maximum dimension to prevent giant block entities
 min-scale: 0.01 #minimum size to prevent extremely tiny entities that can be lost
 max-selection-volume: 25000 #for tps safety

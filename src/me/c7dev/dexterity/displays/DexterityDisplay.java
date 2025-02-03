@@ -870,24 +870,39 @@ public class DexterityDisplay {
 	}
 	
 	/**
-	 * Teleport the selection so that its corner aligns with the nearest block
+	 * Teleport the selection so that its corner aligns with the nearest whole block
 	 */
 	public void align() {
-		DexBlock block = null;
-		double minx = 0, miny = 0, minz = 0;
-		for (DexBlock b : blocks) {
-			Location loc = b.getLocation().add(b.getTransformation().getDisplacement());
-			if (block == null || (loc.getX() <= minx && loc.getY() <= miny && loc.getZ() <= minz)) {
-				block = b;
-				minx = loc.getX();
-				miny = loc.getY();
-				minz = loc.getZ();
+		align(false);
+	}
+	
+	/**
+	 * Teleport the selection so that its corner or center aligns with the nearest whole block
+	 * @param to_center If true, aligns based on the display's center, otherwise by its corner.
+	 */
+	public void align(boolean to_center) {
+		if (to_center) {
+			Vector locv = center.toVector();
+			Vector locvb = new Vector(Math.round(locv.getX()), Math.round(locv.getY()), Math.round(locv.getZ()));
+			Vector diff = locvb.clone().subtract(locv);
+			teleport(diff); //TODO test
+		} else {
+			DexBlock block = null;
+			double minx = 0, miny = 0, minz = 0;
+			for (DexBlock b : blocks) {
+				Location loc = b.getLocation().add(b.getTransformation().getDisplacement());
+				if (block == null || (loc.getX() <= minx && loc.getY() <= miny && loc.getZ() <= minz)) {
+					block = b;
+					minx = loc.getX();
+					miny = loc.getY();
+					minz = loc.getZ();
+				}
 			}
-		}
-		if (block != null) {
-			Location loc = block.getLocation().add(block.getTransformation().getDisplacement());
-			Vector disp = loc.clone().subtract(DexUtils.blockLoc(loc.clone())).toVector();
-			teleport(center.clone().subtract(disp));
+			if (block != null) {
+				Location loc = block.getLocation().add(block.getTransformation().getDisplacement());
+				Vector disp = loc.clone().subtract(DexUtils.blockLoc(loc.clone())).toVector();
+				teleport(center.clone().subtract(disp));
+			}
 		}
 	}
 	

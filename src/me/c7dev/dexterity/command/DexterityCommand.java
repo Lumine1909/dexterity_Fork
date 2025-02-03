@@ -320,7 +320,9 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 			ret.add("z=");
 			ret.add("-set");
 			return ret;
-			
+		case "align":
+			ret.add("-center");
+			return ret;
 		case "tile":
 		case "stack":
 			ret.add("count=");

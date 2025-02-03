@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,6 +20,7 @@ import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
@@ -65,6 +67,7 @@ public class Dexterity extends JavaPlugin {
 	private int max_volume = 25000;
 	private WorldEditPlugin we = null;
 	private boolean legacy = false, has_unloaded_displays = false;
+	private Material wand_item;
 	
 	public static final String defaultLangName = "en-US.yml";
 		
@@ -94,6 +97,13 @@ public class Dexterity extends JavaPlugin {
 		
 		File schem = new File(getDataFolder().getAbsolutePath() + "/schematics");
 		if (!schem.exists()) schem.mkdirs();
+		
+		wand_item = Material.BLAZE_ROD;
+		try {
+			wand_item = Material.valueOf(getConfig().getString("wand-item").toUpperCase());
+		} catch (Exception ex) {
+			Bukkit.getLogger().warning("Could not find material type for Dexterity wand-item: " + getConfig().getString("wand-item"));
+		}
 	}
 	
 	@Override
@@ -211,6 +221,10 @@ public class Dexterity extends JavaPlugin {
 	
 	public DexBlock getMappedDisplay(UUID block) {
 		return display_map.get(block);
+	}
+	
+	public Material getWandType() {
+		return wand_item;
 	}
 	
 	@Deprecated
