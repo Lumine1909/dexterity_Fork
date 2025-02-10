@@ -13,6 +13,7 @@ import org.bukkit.World;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachmentInfo;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.joml.Vector3f;
 
@@ -32,6 +33,8 @@ import me.c7dev.dexterity.transaction.Transaction;
 import me.c7dev.dexterity.util.DexBlock;
 import me.c7dev.dexterity.util.DexUtils;
 import me.c7dev.dexterity.util.Mask;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 
 /**
  * Holds a player's in-game command state and transaction history
@@ -65,6 +68,7 @@ public class DexSession {
 	private boolean cancel_physics = false, sent_click_msg = false;
 	private BlockDisplay[] axis_x, axis_y, axis_z;
 	private AxisType showing_axis = null;
+	private BukkitRunnable actionbar_runnable;
 	
 	/**
 	 * Initializes a new session for a player
@@ -667,8 +671,15 @@ public class DexSession {
 	public void setMask(Mask mask) {
 		this.mask = mask;
 		selectFromLocations();
+		
+		if (actionbar_runnable != null && !actionbar_runnable.isCancelled()) {
+			actionbar_runnable.cancel();
+			actionbar_runnable = null;
+			p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§b"));
+		}
+		
 		if (mask != null) {
-			if (selected != null) {
+			if (selected != null && !selected.isSaved()) {
 				DexterityDisplay s = new DexterityDisplay(plugin, selected.getCenter(), selected.getScale());
 				List<DexBlock> dblocks = new ArrayList<>();
 				for (DexBlock db : selected.getBlocks()) {
@@ -682,6 +693,25 @@ public class DexSession {
 					highlightSelected(s);
 					setSelected(s, false);
 				}
+			}
+			
+			String mask_num = (mask.isNegative() ? "(-) " : "") + mask.getBlocks().size();
+			String ab_msg = plugin.getConfigString("mask-enabled")
+					.replaceAll("\\Q%material_count%\\E", mask_num)
+					.replaceAll("\\Q(s)\\E", mask.getBlocks().size() == 1 ? "" : "s");
+			
+			if (ab_msg.length() > 0) {
+				actionbar_runnable = new BukkitRunnable() {
+					@Override
+					public void run() {
+						if (!p.isOnline()) {
+							this.cancel();
+							actionbar_runnable = null;
+						}
+						else p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ab_msg));
+					}
+				};
+				actionbar_runnable.runTaskTimer(plugin, 0, 20l);
 			}
 		}
 	}

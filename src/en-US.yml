@@ -27,6 +27,7 @@ cancelled-edit: "&^Cancelled edit!"
 unknown-subcommand: "&cUnknown sub-command."
 selected: "selected"
 loclabel-prefix: "selection at"
+mask-enabled: "&7Mask enabled with %material_count% block type(s)"
 
 #Error strings
 display-not-found: "&4Error: &cCould not find display '%input%'"

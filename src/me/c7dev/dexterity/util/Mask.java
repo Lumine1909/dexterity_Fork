@@ -41,6 +41,10 @@ public class Mask {
 	public void setNegative(boolean b) {
 		negative = b;
 	}
+	
+	public boolean isNegative() {
+		return negative;
+	}
 
 	public List<Material> getBlocks() {
 		return blocks;

@@ -343,18 +343,13 @@ public class CommandHandler {
 		String[] args = ct.getArgs();
 		if (d == null) return;
 		
-		if (args.length == 1) {
-			p.sendMessage(getUsage("axis"));
-			return;
-		}
-		
-		if (args[1].equalsIgnoreCase("show")) {
+		if (args.length == 1 || args[1].equalsIgnoreCase("show")) {
 			if (!p.hasPermission("dexterity.axis.show")) {
 				p.sendMessage(noperm);
 				return;
 			}
 			
-			if (args.length == 2) session.setShowingAxes(AxisType.SCALE);
+			if (args.length <= 2) session.setShowingAxes(session.getShowingAxisType() == null ? AxisType.SCALE : null); 
 			else {
 				if (args[2].equalsIgnoreCase("rotation")) session.setShowingAxes(AxisType.ROTATE);
 				else if (args[2].equalsIgnoreCase("scale")) session.setShowingAxes(AxisType.SCALE);
