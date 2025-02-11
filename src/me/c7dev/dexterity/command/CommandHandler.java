@@ -4,11 +4,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
@@ -17,6 +19,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import org.joml.Vector3f;
 
@@ -1125,6 +1128,11 @@ public class CommandHandler {
 			}
 
 			String name = ct.getDefaultArgs().get(1);
+			if (!api.checkSchematicExists(name)) {
+				p.sendMessage(plugin.getConfigString("unknown-input").replaceAll("\\Q%input%\\E", name));
+				return;
+			}
+			
 			DexterityDisplay d;
 			Schematic schem;
 			try {
@@ -1162,6 +1170,10 @@ public class CommandHandler {
 			else if (res == -1) p.sendMessage(getConfigString("console-exception", session));
 		}
 		else if (args[1].equalsIgnoreCase("delete")) { //d schem delete
+			if (args.length <= 2) {
+				p.sendMessage(getUsage("schem"));
+				return;
+			}
 			String name = args[2].toLowerCase();
 			if (!name.endsWith(".dexterity")) name += ".dexterity";
 			File f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + name);
@@ -1270,10 +1282,12 @@ public class CommandHandler {
 			World world = Bukkit.getWorld(attr_str.get("world"));
 			if (world != null) w = world.getName();
 		}
+		boolean all = ct.getFlags().contains("all");
 		
 		int total = 0;
 		for (DexterityDisplay d : plugin.getDisplays()) {
 			if (d.getLabel() == null || (w != null && !d.getCenter().getWorld().getName().equals(w))) continue;
+			if (!all && !d.isListed()) continue; //temporary display
 			total += d.getGroupSize();
 		}
 		if (total == 0) {
@@ -1286,6 +1300,7 @@ public class CommandHandler {
 		int i = 0;
 		for (DexterityDisplay disp : plugin.getDisplays()) {
 			if (disp.getLabel() == null || (w != null && !disp.getCenter().getWorld().getName().equals(w))) continue;
+			if (!all && !disp.isListed()) continue; //temporary display
 			DexSession session = ct.getSession();
 			i += constructList(strs, disp, session.getSelected() == null ? null : session.getSelected().getLabel(), i, 0);
 		}
@@ -1364,6 +1379,59 @@ public class CommandHandler {
 
 		t.commit();
 		session.pushTransaction(t);
+	}
+	
+	public void item(CommandContext ct) {
+		Player p = ct.getPlayer();
+		DexSession session = ct.getSession();
+		ItemStack item = p.getInventory().getItemInMainHand();
+		
+		NamespacedKey key = new NamespacedKey(plugin, "dex-schem-label");
+		ItemMeta meta = item.getItemMeta();
+		String schem_name = meta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+		if (schem_name != null) {
+			meta.setDisplayName(null);
+			meta.getPersistentDataContainer().remove(key);
+			item.setItemMeta(meta);
+			
+			File f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + schem_name + ".dexterity");
+			if (f.exists()) {
+				try {
+					f.delete();
+				} catch (Exception ex) {}
+			}
+			
+			p.sendMessage(getConfigString("item-success-remove", session));
+			return;
+		}
+		
+		DexterityDisplay d = getSelected(session, "item");
+		if (d == null) return;
+		if (!d.isSaved()) {
+			p.sendMessage(getConfigString("not-saved", session));
+			return;
+		}
+		
+		if (item == null || item.getType() == Material.AIR || item.getType() == Material.WOODEN_AXE || item.getType() == plugin.getWandType()) {
+			p.sendMessage(getConfigString("must-hold-item", session));
+			return;
+		}
+		
+		item = item.clone();
+		item.setAmount(1);
+
+		Random random = new Random();
+		String schem_label = DexUtils.getEffectiveLabel(d.getLabel()) + "-temp-" + Math.abs(random.nextInt()); 
+		SchematicBuilder schem= new SchematicBuilder(plugin, d);
+		schem.save(schem_label, p.getName(), true);
+
+		d.setDropItem(item, schem_label);
+		if (ct.getPlayer().getLocation().distance(d.getCenter()) < 10) {
+			d.dropNaturally();
+			session.setSelected(null, false);
+		}
+		p.getInventory().removeItem(item);
+		p.sendMessage(getConfigString("item-success", session));
 	}
 	
 	public void merge(CommandContext ct) {

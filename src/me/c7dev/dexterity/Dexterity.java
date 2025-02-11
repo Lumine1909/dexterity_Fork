@@ -22,6 +22,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -29,6 +31,7 @@ import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -43,7 +46,9 @@ import me.c7dev.dexterity.command.DexterityCommand;
 import me.c7dev.dexterity.displays.DexterityDisplay;
 import me.c7dev.dexterity.displays.animation.SitAnimation;
 import me.c7dev.dexterity.util.AxisPair;
+import me.c7dev.dexterity.util.ClickedBlockDisplay;
 import me.c7dev.dexterity.util.DexBlock;
+import me.c7dev.dexterity.util.DexTransformation;
 import me.c7dev.dexterity.util.DexUtils;
 import me.c7dev.dexterity.util.InteractionCommand;
 import me.c7dev.dexterity.util.OrientationKey;
@@ -400,6 +405,7 @@ public class Dexterity extends JavaPlugin {
 			}
 		}
 		
+		//seat
 		double seat_y_offset = afile.getDouble("seat-offset", Double.MAX_VALUE);
 		if (seat_y_offset < Double.MAX_VALUE) {
 			SitAnimation a = new SitAnimation(disp);
@@ -407,6 +413,11 @@ public class Dexterity extends JavaPlugin {
 			disp.addAnimation(a);
 		}
 		
+		//display drop item
+		String item_schem = afile.getString("item-schem-name");
+		if (item_schem != null) disp.setDropItem(afile.getItemStack("item"), item_schem);
+		
+		//display owners
 		List<String> owner_uuids = afile.getStringList("owners");
 		if (owner_uuids != null && owner_uuids.size() > 0) {
 			List<OfflinePlayer> owners = new ArrayList<>();
@@ -499,6 +510,13 @@ public class Dexterity extends JavaPlugin {
 			for (int i = 0; i < cmds.length; i++) {
 				afile.set("commands.cmd-" + (i+1), cmds[i].serialize());
 			}
+		}
+		
+		//drop item
+		ItemStack item = disp.getDropItem();
+		if (item != null) {
+			afile.set("item-schem-name", disp.getDropItemSchematicName());
+			afile.set("item", item);
 		}
 		
 		//save block uuids
@@ -650,6 +668,60 @@ public class Dexterity extends JavaPlugin {
 	private String getNextLabelHelper(String s, int num) {
 		if (!displays.containsKey(s + "-" + num)) return s + "-" + num;
 		return getNextLabelHelper(s, num+1);
+	}
+	
+	/**
+	 * Emulates how a block display can be placed on one of the faces of another block display, such as when a player clicks a block.
+	 * @param clicked
+	 * @param place_data
+	 * @return
+	 */
+	public BlockDisplay putBlock(ClickedBlockDisplay clicked, BlockData place_data) {
+		DexBlock clicked_db = this.getMappedDisplay(clicked.getBlockDisplay().getUniqueId());
+		DexterityDisplay clicked_display = null;
+		if (clicked_db != null) clicked_display = clicked_db.getDexterityDisplay();
+		
+		Vector placingDimensions = DexUtils.getBlockDimensions(place_data);
+
+		Vector blockscale = DexUtils.vector(clicked.getBlockDisplay().getTransformation().getScale());
+		Vector blockdimensions = DexUtils.getBlockDimensions(clicked.getBlockDisplay().getBlock());
+
+		//calculate dimensions of clicked block display
+		Vector avgPlaceDimensions;
+		if (clicked.getBlockFace() == BlockFace.DOWN) {
+			avgPlaceDimensions = blockdimensions.clone().multiply(0.5).add(placingDimensions).add(new Vector(-0.5, -0.5, -0.5));
+		}
+		else {
+			placingDimensions.setY(1); //account for block's y axis asymmetry
+			avgPlaceDimensions = blockdimensions.clone().add(placingDimensions).multiply(0.5);
+		}
+
+		Vector offset = DexUtils.hadimard(blockscale, avgPlaceDimensions);
+
+		Vector dir = clicked.getNormal();
+		Vector delta = dir.clone().multiply(DexUtils.faceToDirectionAbs(clicked.getBlockFace(), offset));
+
+		DexTransformation trans = (clicked_db == null ? new DexTransformation(clicked.getBlockDisplay().getTransformation()) : clicked_db.getTransformation());
+
+		Location fromLoc = clicked.getDisplayCenterLocation();
+		if (clicked.getBlockFace() != BlockFace.UP && clicked.getBlockFace() != BlockFace.DOWN) fromLoc.add(clicked.getUpDir().multiply((blockscale.getY()/2)*(1 - blockdimensions.getY())));
+
+
+		BlockDisplay b = this.spawn(fromLoc.clone().add(delta), BlockDisplay.class, a -> {
+			a.setBlock(place_data);
+			trans.setScale(blockscale);
+			if (clicked.getRollOffset() == null) trans.setDisplacement(blockscale.clone().multiply(-0.5));
+			else trans.setDisplacement(blockscale.clone().multiply(-0.5).add(clicked.getRollOffset().getOffset()));
+			a.setTransformation(trans.build());
+		});
+
+		if (clicked_display != null) {
+			DexBlock new_db = new DexBlock(b, clicked_display, clicked_db.getRoll());
+			new_db.getTransformation().setDisplacement(new_db.getTransformation().getDisplacement().subtract(clicked_db.getTransformation().getRollOffset()));
+			new_db.getTransformation().setRollOffset(clicked_db.getTransformation().getRollOffset().clone());
+			clicked_display.addBlock(new_db);
+		}
+		return b;
 	}
 	
 	//////////////////////////////////////////////////////////

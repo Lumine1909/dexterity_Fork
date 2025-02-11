@@ -14,6 +14,7 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import me.c7dev.dexterity.Dexterity;
@@ -449,6 +450,32 @@ public class Schematic {
 			}
 			
 		}
+	}
+	
+	/**
+	 * Get the planned bounding box for the overall planned display before pasting it
+	 * @return
+	 */
+	public BoundingBox getPlannedBoundingBox() {
+		BoundingBox box = null;
+		for (SimpleDisplayState d : displays) {
+			if (box == null) box = d.getBoundingBox();
+			else box.union(d.getBoundingBox());
+		}
+		return box == null ? new BoundingBox() : box;
+	}
+	
+	/**
+	 * Get the planned bounding box of the nth planned sub-display
+	 * @param index
+	 * @return
+	 */
+	public BoundingBox getPlannedBoundingBox(int index) {
+		SimpleDisplayState d;
+		if (index >= 0 && index < displays.size()) d = displays.get(index);
+		else d = displays.get(0);
+		
+		return d.getBoundingBox();
 	}
 	
 	/**

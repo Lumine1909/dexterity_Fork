@@ -1,5 +1,6 @@
 package me.c7dev.dexterity.displays;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,10 +11,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.joml.Matrix3d;
 import org.joml.Quaterniond;
@@ -25,6 +32,7 @@ import me.c7dev.dexterity.api.DexRotation;
 import me.c7dev.dexterity.api.events.DisplayTranslationEvent;
 import me.c7dev.dexterity.displays.animation.Animation;
 import me.c7dev.dexterity.displays.animation.RideableAnimation;
+import me.c7dev.dexterity.displays.schematics.SchematicBuilder;
 import me.c7dev.dexterity.transaction.BlockTransaction;
 import me.c7dev.dexterity.util.DexBlock;
 import me.c7dev.dexterity.util.DexUtils;
@@ -42,12 +50,13 @@ public class DexterityDisplay {
 	
 	private Dexterity plugin;
 	private Location center;
-	private String label;
+	private String label, item_schem_label;
 	private Vector scale;
 	private DexterityDisplay parent;
-	private boolean started_animations = false, zero_pitch = false;
+	private boolean started_animations = false, zero_pitch = false, listed = true;
 	private UUID uuid = UUID.randomUUID(), editing_lock;
 	private DexRotation rot = null;
+	private ItemStack item;
 	
 	private List<DexBlock> blocks = new ArrayList<>();
 	private List<Animation> animations = new ArrayList<>();
@@ -117,6 +126,23 @@ public class DexterityDisplay {
 	 */
 	public String getLabel() {
 		return label;
+	}
+	
+	/**
+	 * Set to false to hide display from /d list. All saved displays are listed by default
+	 * @param b
+	 */
+	public void setListed(boolean b) {
+		listed = b;
+		for (DexterityDisplay d : subdisplays) d.setListed(b);
+	}
+	
+	/**
+	 * Checks if display is listed on normal list
+	 * @return true if display will show on the saved display list (/d list), or false if display is only intended to be temporary.
+	 */
+	public boolean isListed() {
+		return listed && label != null;
 	}
 	
 	public double getYaw() {
@@ -244,6 +270,7 @@ public class DexterityDisplay {
 		for (DexBlock db : blocks) {
 			if (db.getDexterityDisplay() == null || !db.getDexterityDisplay().isSaved()) db.setDexterityDisplay(this);
 		}
+		updateDropItemMeta();
 		return true;
 	}
 		
@@ -402,7 +429,80 @@ public class DexterityDisplay {
 	public Vector getScale() {
 		return scale.clone();
 	}
-
+	
+	/**
+	 * Sets the item that will be dropped if a player breaks the display
+	 * @param item
+	 */
+	public void setDropItem(ItemStack item, String schem_name) {
+		if (!isSaved()) throw new RuntimeException("Can not set display's drop item when display is not saved.");
+		if (item == null) {
+			if (item_schem_label != null) {
+				File f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + item_schem_label);
+				if (f.exists()) {
+					try {
+						f.delete();
+					} catch (Exception ex) {}
+				}
+			}
+			item_schem_label = null;
+		}
+		else {
+			if (item.getType() == Material.AIR) {
+				this.item = null;
+				return;
+			}
+			
+			//save new schem if not exists
+			item_schem_label = schem_name;
+			File schem_f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + schem_name + ".dexterity");
+			if (!schem_f.exists()) {
+				SchematicBuilder s = new SchematicBuilder(plugin, this);
+				s.save(schem_name, "CONSOLE", true);
+			}
+		}
+		this.item = item.clone();
+		updateDropItemMeta();
+	}
+	
+	public String getDropItemSchematicName() {
+		return item_schem_label;
+	}
+	
+	private void updateDropItemMeta() {
+		if (item == null || item_schem_label == null || label == null) return;
+		NamespacedKey key = new NamespacedKey(plugin, "dex-schem-label");
+		ItemMeta meta = item.getItemMeta();
+		meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, item_schem_label);
+		
+		String disp_label = DexUtils.getEffectiveLabel(label);
+		
+		meta.setDisplayName("§f" + disp_label.toUpperCase().substring(0, 1) + disp_label.substring(1));
+		item.setItemMeta(meta);
+	}
+	
+	/**
+	 * Gets a copy of the item that will be dropped when the player breaks the display
+	 * @return
+	 */
+	public ItemStack getDropItem() {
+		return item == null ? null : item.clone();
+	}
+	
+	/**
+	 * Remove the display but drop it as an item if an item has been defined
+	 */
+	public void dropNaturally() {
+		if (item != null) {
+			Item e = center.getWorld().dropItem(center, item);
+			Vector v = e.getVelocity();
+			v.setX(v.getX() * 0.2);
+			v.setZ(v.getZ() * 0.2);
+			e.setVelocity(v);
+		}
+		remove();
+	}
+	
 	/**
 	 * Overrides the blocks in this display
 	 * @param entities A list of unique DexBlocks
@@ -632,6 +732,15 @@ public class DexterityDisplay {
 		} else for (DexBlock b : blocks) b.getEntity().remove();
 		
 		plugin.unregisterDisplay(this);
+		
+		if (item_schem_label != null) {
+			File f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + item_schem_label);
+			if (f.exists()) {
+				try {
+					f.delete();
+				} catch (Exception ex) {}
+			}
+		}
 		
 		for (DexterityDisplay subdisplay : subdisplays.toArray(new DexterityDisplay[subdisplays.size()])) subdisplay.remove(restore);
 	}
@@ -885,7 +994,7 @@ public class DexterityDisplay {
 			Vector locv = center.toVector();
 			Vector locvb = new Vector(Math.round(locv.getX()), Math.round(locv.getY()), Math.round(locv.getZ()));
 			Vector diff = locvb.clone().subtract(locv);
-			teleport(diff); //TODO test
+			teleport(diff);
 		} else {
 			DexBlock block = null;
 			double minx = 0, miny = 0, minz = 0;
@@ -976,6 +1085,27 @@ public class DexterityDisplay {
 	public Quaterniond rotate(RotationPlan plan) {
 		if (rot == null) rot = new DexRotation(this);
 		return rot.rotate(plan);
+	}
+	
+	public BoundingBox getBoundingBox() {
+		if (blocks.size() == 0) return new BoundingBox();
+		double minx = Double.MAX_VALUE, miny = Double.MAX_VALUE, minz = Double.MAX_VALUE;
+		double maxx = Double.MIN_VALUE, maxy = Double.MIN_VALUE, maxz = Double.MIN_VALUE;
+		
+		for (DexBlock db : blocks) {
+			Vector v = db.getLocation().toVector(), scale = db.getTransformation().getScale().clone().multiply(0.5);
+			Vector a = v.clone().add(scale), b = v.clone().subtract(scale);
+			
+			minx = Math.min(a.getX(), Math.min(b.getX(), minx));
+			miny = Math.min(a.getY(), Math.min(b.getY(), miny));
+			minz = Math.min(a.getZ(), Math.min(b.getZ(), minz));
+			
+			maxx = Math.max(a.getX(), Math.max(b.getX(), maxx));
+			maxy = Math.max(a.getY(), Math.max(b.getY(), maxy));
+			maxz = Math.max(a.getZ(), Math.max(b.getZ(), maxz));
+		}
+		
+		return new BoundingBox(minx, miny, minz, maxx, maxy, maxz);
 	}
 	
 	/**

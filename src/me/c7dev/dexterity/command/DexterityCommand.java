@@ -32,7 +32,7 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 	private long cmd_delay_ms;
 	
 	private String[] commands = {
-		"align", "axis", "clone", "command", "consolidate", "convert", "deconvert", "deselect", "glow", "highlight", "info", "list", "mask", 
+		"align", "axis", "clone", "command", "consolidate", "convert", "deconvert", "deselect", "glow", "highlight", "info", "item", "list", "mask", 
 		"merge", "move", "name", "owner", "pos1", "recenter", "redo", "reload", "remove", "replace", "rotate", "scale", "schem", "seat", "select", 
 		"undo", "unsave", "tile", "wand"
 	};
@@ -243,6 +243,9 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		case "skew":
 			handler.scale(ctx);
 			return true;
+		case "item":
+			handler.item(ctx);
+			return true;
 		case "merge":
 			handler.merge(ctx);
 			return true;
@@ -275,6 +278,7 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		switch(argsr[0]) {
 		case "list":
 			ret.add("world=");
+			ret.add("-all");
 		case "?":
 		case "help":
 			ret.add("page=");

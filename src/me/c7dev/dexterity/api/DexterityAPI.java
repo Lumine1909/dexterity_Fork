@@ -1,5 +1,6 @@
 package me.c7dev.dexterity.api;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -204,6 +205,18 @@ public class DexterityAPI {
 		
 		d.recalculateCenter();
 		return d;
+	}
+	
+	/**
+	 * Returns true if a schematic with this name exists in the schematics folder
+	 * @param name
+	 * @return
+	 */
+	public boolean checkSchematicExists(String name) {
+		if (name == null) return false;
+		if (!name.endsWith(".dexterity")) name += ".dexterity";
+		File f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + name);
+		return f.exists();
 	}
 	
 	private Vector[][] getBasisVecs(Matrix3d mat) {
@@ -643,8 +656,7 @@ public class DexterityAPI {
 	
 	public String getAuthor() {
 		String a = "%%__USER__%%, %%__RESOURCE__%%, %%__NONCE__%%";
-		final String message_for_pirates = "Make it FREE. You'd better not claim it as your own or load it with viruses, or I'll find you >:3" +
-				"\n Leave a visible spigotMC link to the original work at the top of your page. Also take a shower you smell like rum.";
+		final String message_for_pirates = "Make it FREE. If you make money off my work, I will find you >:3";
 		return ("ytrew").replace('y', 'C').replace('w', 'v').replace('t', '7').replace('r', 'd');
 	}
 	

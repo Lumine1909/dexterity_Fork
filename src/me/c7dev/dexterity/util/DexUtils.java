@@ -17,6 +17,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.joml.Matrix3d;
 import org.joml.Quaterniond;
@@ -453,6 +454,24 @@ public class DexUtils {
 	    return data;
 	}
 	//End Citation
+	
+	/**
+	 * Removes any 'temp' plus random value
+	 * @param label
+	 * @return
+	 */
+	public static String getEffectiveLabel(String label) {
+		StringBuilder disp_label_sb = new StringBuilder();
+		String[] label_split = label.split("-");
+		for (int i = 0; i < label_split.length; i++) {
+			if (i > 0) {
+				if (label_split[i].equals("temp")) break;
+				disp_label_sb.append('-');
+			}
+			disp_label_sb.append(label_split[i]);
+		}
+		return disp_label_sb.toString();
+	}
 	
 	public static double getParameter(Vector v, int axis) {
 		switch(axis) {
