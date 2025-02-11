@@ -1383,8 +1383,16 @@ public class CommandHandler {
 	
 	public void item(CommandContext ct) {
 		Player p = ct.getPlayer();
+		if (!p.hasPermission("dexterity.command.item")) {
+			p.sendMessage(noperm);
+			return;
+		}
 		DexSession session = ct.getSession();
 		ItemStack item = p.getInventory().getItemInMainHand();
+		if (item == null || item.getType() == Material.AIR || item.getType() == Material.WOODEN_AXE || item.getType() == plugin.getWandType()) {
+			p.sendMessage(getConfigString("must-hold-item", session));
+			return;
+		}
 		
 		NamespacedKey key = new NamespacedKey(plugin, "dex-schem-label");
 		ItemMeta meta = item.getItemMeta();
@@ -1409,11 +1417,6 @@ public class CommandHandler {
 		if (d == null) return;
 		if (!d.isSaved()) {
 			p.sendMessage(getConfigString("not-saved", session));
-			return;
-		}
-		
-		if (item == null || item.getType() == Material.AIR || item.getType() == Material.WOODEN_AXE || item.getType() == plugin.getWandType()) {
-			p.sendMessage(getConfigString("must-hold-item", session));
 			return;
 		}
 		
