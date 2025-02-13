@@ -148,11 +148,19 @@ public class CommandHandler {
 	}
 	
 	public String getConfigString(String dir, DexSession session) {
+		return getConfigString(dir, session, null);
+	}
+	
+	public String getConfigString(String dir, DexSession session, String override_label) {
 		String s = plugin.getConfigString(dir);
-		if (session != null && session.getSelected() != null && session.getSelected().getLabel() != null) {
+		if (override_label != null) {
+			s = s.replaceAll("\\Q%label%\\E", override_label).replaceAll("\\Q%loclabel%\\E", override_label);
+		}
+		else if (session != null && session.getSelected() != null && session.getSelected().getLabel() != null) {
 			String label = cc2 + session.getSelected().getLabel() + cc;
 			s = s.replaceAll("\\Q%label%\\E", label).replaceAll("\\Q%loclabel%\\E", label); //regex substr selector isn't working, idk
-		} else {
+		} 
+		else {
 			s = s.replaceAll("\\Q%label%\\E", selected_str);
 			if (session != null && session.getSelected() != null) s = s.replaceAll("\\Q%loclabel%", loclabel_prefix + " " + cc2 + DexUtils.locationString(session.getSelected().getCenter(), 0) + cc);
 			else s = s.replaceAll("\\Q%loclabel%\\E", "");
@@ -1229,18 +1237,23 @@ public class CommandHandler {
 		if ((res && !withPermission(p, "remove")) || (!res && !withPermission(p, "deconvert"))) return;
 		
 		if (testInEdit(session)) return;
-		DexterityDisplay d = session.getSelected();
-		if (d == null) {
-			String def = ct.getDefaultArg();
-			if (def == null) {
+		
+		String def = ct.getDefaultArg();
+		DexterityDisplay d;
+		if (def == null) {
+			d = session.getSelected();
+			if (d == null) {
 				ct.getPlayer().sendMessage(plugin.getConfigString("must-select-display"));
 				return;
 			}
+		}
+		else {
 			d = plugin.getDisplay(def);
 			if (d == null) {
 				p.sendMessage(plugin.getConfigString("display-not-found").replaceAll("\\Q%input%\\E", def));
 				return;
 			}
+			
 		}
 		
 		api.unTempHighlight(d);
@@ -1252,13 +1265,15 @@ public class CommandHandler {
 		}
 		else t = new RemoveTransaction(d);
 		
+		String label = d.getLabel();
 		d.remove(res);
 		
 		if (res) {
-			p.sendMessage(getConfigString("restore-success", session));
+			p.sendMessage(getConfigString("restore-success", session, label));
 			session.setCancelPhysics(false);
 		}
-		else p.sendMessage(getConfigString("remove-success", session));
+		else p.sendMessage(getConfigString("remove-success", session, label));
+		
 		session.setSelected(null, false);
 		session.pushTransaction(t);
 	}

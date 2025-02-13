@@ -1,5 +1,5 @@
 name: Dexterity
-version: 1.5.1
+version: 1.5.2
 author: c7dev
 main: me.c7dev.dexterity.Dexterity
 api-version: 1.19
@@ -37,6 +37,7 @@ permissions:
       dexterity.command.deconvert: true
       dexterity.command.highlight: true
       dexterity.command.glow: true
+      dexterity.command.item: true
       dexterity.command.list: true
       dexterity.command.merge: true
       dexterity.command.owner: true
@@ -69,7 +70,9 @@ permissions:
   dexterity.command.deconvert:
     description: Use /d deconvert
   dexterity.command.highlight:
-    description: Use /d highlight #
+    description: Use /d highlight
+  dexterity.command.item:
+    description: Use /d item
   dexterity.command.glow:
     description: Use /d glow
   dexterity.command.list:
