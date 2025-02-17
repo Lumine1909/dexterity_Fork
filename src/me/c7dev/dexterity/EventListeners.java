@@ -211,34 +211,43 @@ public class EventListeners implements Listener {
 	}
 	
 	
-	@EventHandler(priority=EventPriority.HIGH, ignoreCancelled=true)
+	@EventHandler(priority=EventPriority.HIGH, ignoreCancelled=true) //placing display item
 	public void onPlace(BlockPlaceEvent e) {
-		if (!e.getPlayer().hasPermission("dexterity.build")) return; //placing display item
+//		if (!e.getPlayer().hasPermission("dexterity.build")) return;
+		if (e.isCancelled()) return;
 		
-		ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
-		if (hand == null || hand.getType() == Material.AIR) hand = e.getPlayer().getInventory().getItemInOffHand();
+		ItemStack hand = e.getItemInHand();
+		if (hand == null || hand.getType() == Material.AIR) return;
+
+		ItemMeta meta = hand.getItemMeta();
+		NamespacedKey key = new NamespacedKey(plugin, "dex-schem-label");
+		String schem_name = meta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+		if (!plugin.api().checkSchematicExists(schem_name)) return;
 		
-		if (hand != null && hand.getType() != Material.AIR) {
-			ItemMeta meta = hand.getItemMeta();
-			NamespacedKey key = new NamespacedKey(plugin, "dex-schem-label");
-			String schem_name = meta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
-			if (plugin.api().checkSchematicExists(schem_name)) {
-				ItemStack item = hand.clone();
-				item.setAmount(1);
-				e.setCancelled(true);
-				Schematic schem = new Schematic(plugin, schem_name);
-
-				BoundingBox box = schem.getPlannedBoundingBox();
-				Location loc = e.getBlock().getLocation().add(0.5, -box.getMinY(), 0.5);
-
-				DexterityDisplay d = schem.paste(loc);
-				d.setListed(false);
-				d.addOwner(e.getPlayer());
-				d.setDropItem(item, schem_name);
-				if (e.getPlayer().getGameMode() != GameMode.CREATIVE) e.getPlayer().getInventory().removeItem(item);
-				return;
-			}
+		ItemStack item = hand.clone();
+		item.setAmount(1);
+		e.setCancelled(true);
+		Schematic schem = new Schematic(plugin, schem_name);
+		
+		Vector diff = e.getBlock().getLocation().toVector().subtract(e.getBlockAgainst().getLocation().toVector());
+		BoundingBox box = schem.getPlannedBoundingBox();
+		Location loc = e.getBlock().getLocation();
+		
+		if (diff.getY() == 1) { //clicked up face
+			Vector against_dims = DexUtils.getBlockDimensions(e.getBlockAgainst().getBlockData());
+			loc.add(0.5, -box.getMinY() + against_dims.getY() - 1, 0.5);
 		}
+		else if (diff.getY() == -1) loc.add(0.5, 1 - box.getMaxY(), 0.5); //clicked down face
+		else if (diff.getX() == 1) loc.add(-box.getMinX(), -box.getMinY(), 0.5); //clicked west face
+		else if (diff.getX() == -1) loc.add(1 - box.getMaxX(), -box.getMinY(), 0.5); //clicked east face
+		else if (diff.getZ() == 1) loc.add(0.5, -box.getMinY(), -box.getMinZ()); //clicked south face
+		else if (diff.getZ() == -1) loc.add(0.5, -box.getMinY(), 1 - box.getMaxZ()); //clicked north face
+		
+		DexterityDisplay d = schem.paste(loc);
+		d.setListed(false);
+		d.addOwner(e.getPlayer());
+		d.setDropItem(item, schem_name);
+		if (e.getPlayer().getGameMode() != GameMode.CREATIVE) e.getPlayer().getInventory().removeItem(item);
 	}
 	
 	
