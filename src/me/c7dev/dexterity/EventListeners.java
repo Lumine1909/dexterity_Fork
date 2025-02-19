@@ -213,7 +213,6 @@ public class EventListeners implements Listener {
 	
 	@EventHandler(priority=EventPriority.HIGH, ignoreCancelled=true) //placing display item
 	public void onPlace(BlockPlaceEvent e) {
-//		if (!e.getPlayer().hasPermission("dexterity.build")) return;
 		if (e.isCancelled()) return;
 		
 		ItemStack hand = e.getItemInHand();

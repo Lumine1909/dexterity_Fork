@@ -43,7 +43,11 @@ import me.c7dev.dexterity.util.SavedBlockState;
 
 public class DexterityAPI {
 	
-	Dexterity plugin;
+	private Dexterity plugin;
+	private HashMap<UUID, Integer> pidMap = new HashMap<>();
+	private List<UUID> markerPoints = new ArrayList<>();
+	private int pid_ = Integer.MIN_VALUE + 1; //min val reserved for getOrDefault
+	
 	private BlockFace[] faces = {
 			BlockFace.UP,
 			BlockFace.DOWN,
@@ -52,10 +56,6 @@ public class DexterityAPI {
 			BlockFace.EAST,
 			BlockFace.WEST
 	};
-	
-	HashMap<UUID, Integer> pidMap = new HashMap<>();
-	List<UUID> markerPoints = new ArrayList<>();
-	private int pid_ = Integer.MIN_VALUE + 1; //min val reserved for getOrDefault
 	
 	private int getNewPID() {
 		int p = pid_;
@@ -344,9 +344,9 @@ public class DexterityAPI {
 						
 			boolean first_face = false; //always intersects 2 faces - convex
 			for (int i = 0; i < locs.length; i++) {
+				if (!first_face && i == locs.length - 1) continue bd_loop; //not looking at this block, no need to check last face
 				
-				Vector basis1 = basis_vecs[i][0];
-				Vector basis2 = basis_vecs[i][1];
+				Vector basis1 = basis_vecs[i][0], basis2 = basis_vecs[i][1];
 								
 				// Solve `(FaceCenter) + a(basis1) + b(basis2) = c(dir) + (EyeLoc)` to find intersection of block face plane
 				Vector L = eye_loc.clone().subtract(locs[i]);
