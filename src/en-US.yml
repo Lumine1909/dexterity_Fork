@@ -68,6 +68,7 @@ file-not-found: "&4Error: &cThis file does not exist!"
 player-not-found: "&4Error: &cCould not find player %player%!"
 cannot-exceed-scale-limit: "&4Error: &cCannot exceed maximum or minimum scale limit!"
 must-hold-item: "&4Error: &cYou must hold an item in your hand to do this"
+cannot-delete-item-schem: "&4Error: &cCan not unpair the schematic from this item when there are already copies of it! (Use /d list -all)"
 
 #Success strings
 align-success: "&^Aligned %loclabel%!"

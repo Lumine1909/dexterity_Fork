@@ -259,6 +259,23 @@ public class CommandHandler {
 		plugin.purgeUnloadedDisplays();
 	}
 	
+	public void debug_item(CommandContext ct) {
+		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
+		Player p = ct.getPlayer();
+		ItemStack hand = ct.getPlayer().getInventory().getItemInMainHand();
+		if (hand == null || hand.getType() == Material.AIR) {
+			p.sendMessage(plugin.getConfigString("must-hold-item"));
+			return;
+		}
+		
+		ItemMeta meta = hand.getItemMeta();
+		NamespacedKey key = new NamespacedKey(plugin, "dex-schem-label");
+		String schem_name = meta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+		
+		if (schem_name == null) p.sendMessage("§cThere is no Dexterity schematic associated with this item!");
+		else p.sendMessage(cc + "This item is tied to the " + cc2 + schem_name + cc + " item schematic.");
+	}
+	
 	public void paste(CommandContext ct) {
 		DexSession session = ct.getSession();
 		if (session.getEditType() != null) {
@@ -1413,6 +1430,13 @@ public class CommandHandler {
 		ItemMeta meta = item.getItemMeta();
 		String schem_name = meta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
 		if (schem_name != null) {
+			for (String label : plugin.getDisplayLabels()) {
+				if (label.startsWith(schem_name)) {
+					p.sendMessage(plugin.getConfigString("cannot-delete-item-schem"));
+					return;
+				}
+			}
+			
 			meta.setDisplayName(null);
 			meta.getPersistentDataContainer().remove(key);
 			item.setItemMeta(meta);

@@ -9,7 +9,10 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Slab;
+import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -234,6 +237,14 @@ public class EventListeners implements Listener {
 		
 		if (diff.getY() == 1) { //clicked up face
 			Vector against_dims = DexUtils.getBlockDimensions(e.getBlockAgainst().getBlockData());
+			if (e.getBlockAgainst().getBlockData() instanceof Slab) {
+				Slab slab = (Slab) e.getBlockAgainst().getBlockData();
+				if (slab.getType() != Slab.Type.BOTTOM) against_dims = new Vector(1, 1, 1);
+			}
+			else if (e.getBlockAgainst().getBlockData() instanceof TrapDoor) {
+				TrapDoor td = (TrapDoor) e.getBlockAgainst().getBlockData();
+				if (td.getHalf() == Bisected.Half.TOP) against_dims = new Vector(1, 1, 1);
+			}
 			loc.add(0.5, -box.getMinY() + against_dims.getY() - 1, 0.5);
 		}
 		else if (diff.getY() == -1) loc.add(0.5, 1 - box.getMaxY(), 0.5); //clicked down face
