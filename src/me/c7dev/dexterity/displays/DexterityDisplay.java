@@ -733,15 +733,6 @@ public class DexterityDisplay {
 		
 		plugin.unregisterDisplay(this);
 		
-		if (item_schem_label != null) {
-			File f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + item_schem_label);
-			if (f.exists()) {
-				try {
-					f.delete();
-				} catch (Exception ex) {}
-			}
-		}
-		
 		for (DexterityDisplay subdisplay : subdisplays.toArray(new DexterityDisplay[subdisplays.size()])) subdisplay.remove(restore);
 	}
 	

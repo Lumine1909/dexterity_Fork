@@ -270,7 +270,6 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		
 		List<String> ret = new ArrayList<String>();
 		if (!sender.hasPermission("dexterity.command")) return ret;
-		boolean add_labels = false;
 		
 		if (argsr.length <= 1) {
 			for (String s : commands) ret.add(s);
