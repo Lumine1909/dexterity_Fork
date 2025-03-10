@@ -112,7 +112,9 @@ public class EventListeners implements Listener {
 
 			//drop display item
 			if (clicked_display.getDropItem() != null && !right_click && clicked_display.hasOwner(e.getPlayer())) {
-				if (e.getPlayer().getGameMode() == GameMode.CREATIVE) clicked_display.remove(); 
+				if (e.getPlayer().getGameMode() == GameMode.CREATIVE && e.getPlayer().getInventory().containsAtLeast(clicked_display.getDropItem(), 1)) {
+					clicked_display.remove();
+				}
 				else clicked_display.dropNaturally();
 				BlockData bdata = Bukkit.createBlockData(clicked_display.getDropItem().getType());
 				e.getPlayer().playSound(clicked_display.getCenter(), bdata.getSoundGroup().getBreakSound(), 1f, 1f);
