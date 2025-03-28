@@ -1238,12 +1238,22 @@ public class CommandHandler {
 	public void info(CommandContext ct) {
 		DexterityDisplay d = getSelected(ct.getSession(), null);
 		if (d == null) return;
-		String msg = plugin.getConfigString(d.getLabel() == null ? "info-format" : "info-format-saved")
-				.replaceAll("\\Q%count%\\E", "" + d.getBlocksCount())
-				.replaceAll("\\Q%world%\\E", d.getCenter().getWorld().getName());
-		if (d.getLabel() != null) msg = msg.replaceAll("\\Q%label%\\E", d.getLabel());
-		
-		ct.getPlayer().sendMessage(msg);
+		if (ct.getFlags().contains("scale")) {
+			Vector scale = d.getScale();
+			int decimals = 6;
+			String msg = getConfigString("info-format-scale", ct.getSession())
+					.replaceAll("\\Q%x%\\E", "" + DexUtils.round(scale.getX(), decimals))
+					.replaceAll("\\Q%y%\\E", "" + DexUtils.round(scale.getY(), decimals))
+					.replaceAll("\\Q%z%\\E", DexUtils.round(scale.getZ(), decimals));
+			ct.getPlayer().sendMessage(msg);
+		} else {
+			String msg = plugin.getConfigString(d.getLabel() == null ? "info-format" : "info-format-saved")
+					.replaceAll("\\Q%count%\\E", "" + d.getBlocksCount())
+					.replaceAll("\\Q%world%\\E", d.getCenter().getWorld().getName());
+			if (d.getLabel() != null) msg = msg.replaceAll("\\Q%label%\\E", d.getLabel());
+
+			ct.getPlayer().sendMessage(msg);
+		}
 		api.markerPoint(d.getCenter(), Color.AQUA, 4);
 	}
 	

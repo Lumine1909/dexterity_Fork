@@ -435,6 +435,10 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 				ret.add("scale");
 			}
 			return ret;
+		case "i":
+		case "info":
+			ret.add("-scale");
+			return ret;
 		case "schem":
 		case "schematic":
 			if (argsr.length == 1) return ret;
