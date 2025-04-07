@@ -478,6 +478,7 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		case "restore":
 		case "deconvert":
 		case "deconv":
+		case "merge":
 		case "rm":
 			Player p = (Player) sender;
 			for (String s : plugin.getDisplayLabels(p)) ret.add(s);
