@@ -11,11 +11,11 @@ import me.c7dev.dexterity.displays.DexterityDisplay;
 public class Animation {
 	
 	private boolean paused = true, stop_req = false;
-	private BukkitRunnable runnable, start_delay;
+	private BukkitRunnable runnable, startDelay;
 	private DexterityDisplay display;
 	private List<Animation> subseq = new ArrayList<>();
 	private Dexterity plugin;
-	private int ticks = 0, delay = 0, tick_count = 0;
+	private int ticks = 0, delay = 0, tickCount = 0;
 	private int freq = 1;
 		
 	public Animation(DexterityDisplay display, int ticks) {
@@ -26,9 +26,9 @@ public class Animation {
 	}
 	
 	public boolean tick() {
-		tick_count++;
-		if (tick_count >= ticks) finish();
-		return tick_count >= ticks; 
+		tickCount++;
+		if (tickCount >= ticks) finish();
+		return tickCount >= ticks; 
 	}
 	
 	public int getDuration() {
@@ -89,7 +89,7 @@ public class Animation {
 	
 	public void start() {
 		if (isStarted() || stop_req || runnable == null) return;
-		start_delay = new BukkitRunnable() {
+		startDelay = new BukkitRunnable() {
 			@Override
 			public void run() {
 				delay = 0;
@@ -102,7 +102,7 @@ public class Animation {
 				paused = false;
 			}
 		};
-		start_delay.runTaskLater(plugin, (long) delay);
+		startDelay.runTaskLater(plugin, (long) delay);
 	}
 	
 	public void stop() {
@@ -115,8 +115,8 @@ public class Animation {
 		}
 		
 		stop_req = true;
-		if (start_delay != null && !start_delay.isCancelled()) start_delay.cancel();
-		start_delay = null;
+		if (startDelay != null && !startDelay.isCancelled()) startDelay.cancel();
+		startDelay = null;
 		for (Animation a : subseq) a.stop();
 	}
 	
@@ -127,9 +127,9 @@ public class Animation {
 	public void kill(boolean stop_subseq) {
 		if (paused && !stop_subseq) return;
 		paused = true;
-		tick_count = 0;
-		if (start_delay != null && !start_delay.isCancelled()) start_delay.cancel();
-		start_delay = null;
+		tickCount = 0;
+		if (startDelay != null && !startDelay.isCancelled()) startDelay.cancel();
+		startDelay = null;
 		if (stop_subseq) for (Animation a : subseq) 
 			if (a != this) a.kill();
 	}

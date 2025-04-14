@@ -38,17 +38,17 @@ public class SchematicBuilder {
 	private Vector center;
 	private Dexterity plugin;
 	
-	private HashMap<DoubleKey, DoubleToken> double_map = new HashMap<>();
-	private HashMap<StringKey, StringToken> string_map = new HashMap<>();
-	private HashMap<Character, CharToken> char_map = new HashMap<>();
-	private HashMap<TokenType, Token> specifier_map = new HashMap<>();
+	private HashMap<DoubleKey, DoubleToken> doubleMap = new HashMap<>();
+	private HashMap<StringKey, StringToken> stringMap = new HashMap<>();
+	private HashMap<Character, CharToken> charMap = new HashMap<>();
+	private HashMap<TokenType, Token> specifierMap = new HashMap<>();
 	
-	private List<Token> encoded_output = new ArrayList<>();
+	private List<Token> encodedOutput = new ArrayList<>();
 	private HashMap<Token,Integer> freq = new HashMap<>();
-	private boolean assigned_tags = false;
+	private boolean assignedTags = false;
 	private MessageDigest sha256;
-	private String hash_progress = "";
-	private StringBuilder hash_line = new StringBuilder("NaCl, why not");
+	private String hashProgress = "";
+	private StringBuilder hashLine = new StringBuilder("NaCl, why not");
 	
 	/* SCHEMA FORMAT
 	 * schema-version: <version>
@@ -83,13 +83,13 @@ public class SchematicBuilder {
 		plugin.api().unTempHighlight(d);
 		for (TokenType type : TokenType.values()) {
 			Token stoken = new Token(type);
-			specifier_map.put(type, stoken);
+			specifierMap.put(type, stoken);
 			freq.put(stoken, 0);
 		}
 		
 		for (char i = 48; i <= 57; i++) { //define all digits because used afterward encoding for obj tag lengths
 			CharToken ctoken = new CharToken(i);
-			char_map.put(i, ctoken);
+			charMap.put(i, ctoken);
 			freq.put(ctoken, 0);
 		}
 		
@@ -109,17 +109,17 @@ public class SchematicBuilder {
 	
 	/**
 	 * Save the schematic to a file name
-	 * @param file_name Does not include path to schematics folder
+	 * @param fileName Does not include path to schematics folder
 	 * @param author
 	 * @param override
 	 * @return
 	 */
-	public int save(String file_name, String author, boolean override) {
-		if (file_name == null || file_name.length() == 0) throw new IllegalArgumentException("File name cannot be null!");
+	public int save(String fileName, String author, boolean override) {
+		if (fileName == null || fileName.length() == 0) throw new IllegalArgumentException("File name cannot be null!");
 		if (author == null || author.length() == 0) throw new IllegalArgumentException("Must provide an author!");
 		if (author.contains(";")) throw new IllegalArgumentException("Author name cannot have ; in it!");
 		try {
-			File f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + file_name + ".dexterity");
+			File f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + fileName + ".dexterity");
 			if (f.exists()) {
 				if (!override) return 1;
 			} else f.createNewFile();
@@ -143,7 +143,7 @@ public class SchematicBuilder {
 		if (f == null) throw new IllegalArgumentException("File cannot be null!");
 		if (author == null || author.length() == 0) throw new IllegalArgumentException("Must provide an author!");
 		if (author.contains(";")) throw new IllegalArgumentException("Author name cannot have ; in it!");
-		if (!assigned_tags) throw new DexterityException("Did not assign tags to tokens, cannot save!");
+		if (!assignedTags) throw new DexterityException("Did not assign tags to tokens, cannot save!");
 		
 		List<Token> definitions = createObjectTokens(true); //create definitions token list, dependent on created tags
 
@@ -165,7 +165,7 @@ public class SchematicBuilder {
 			boolean writeindex = true;
 			for (int i = 32; i <= 254; i++) {
 				char c = (char) i;
-				CharToken token = char_map.get(c);
+				CharToken token = charMap.get(c);
 
 				if (token != null) {
 					if (writeindex) {
@@ -185,7 +185,7 @@ public class SchematicBuilder {
 			writeindex = true;
 			TokenType[] types = TokenType.values();
 			for (int i = 0; i < types.length; i++) {
-				Token spec = specifier_map.get(types[i]);
+				Token spec = specifierMap.get(types[i]);
 				if (spec.getTag() != null && freq.getOrDefault(spec, 0) >= 1) {
 					if (writeindex) {
 						write((i+256) + ":", writer);
@@ -198,22 +198,22 @@ public class SchematicBuilder {
 			
 			//define object tokens
 			write("objects: ", writer);
-			TokenEncoder obj_encoder = new TokenEncoder();
+			TokenEncoder objEncoder = new TokenEncoder();
 			for (Token token : definitions) {
-				obj_encoder.append(token.getTag());
+				objEncoder.append(token.getTag());
 			}
-			write(Base64.getEncoder().encodeToString(obj_encoder.getData()), writer);
+			write(Base64.getEncoder().encodeToString(objEncoder.getData()), writer);
 			write("\n", writer);
 			
 			
 			write("data: ", writer);
 			TokenEncoder encoder = new TokenEncoder();
-			for (Token token : encoded_output) encoder.append(token.getTag());
+			for (Token token : encodedOutput) encoder.append(token.getTag());
 			write(Base64.getEncoder().encodeToString(encoder.getData()), writer);
 			write("\n", writer);
 			
 			writer.write("hash: ");
-			writer.write(hash_progress);
+			writer.write(hashProgress);
 			writer.write("\n");
 
 			writer.close();
@@ -228,23 +228,23 @@ public class SchematicBuilder {
 		writer.write(s);
 		
 		if (s.equals("\n")) {
-			hash_progress = hash(hash_line.toString() + hash_progress);
-			hash_line = new StringBuilder();
+			hashProgress = hash(hashLine.toString() + hashProgress);
+			hashLine = new StringBuilder();
 		}
-		else hash_line.append(s);
+		else hashLine.append(s);
 	}
 	
 	public DoubleToken getDouble(TokenType type, double x) {
 		DoubleKey key = new DoubleKey(type, x);
-		DoubleToken r = double_map.get(key);
+		DoubleToken r = doubleMap.get(key);
 		if (r == null) {
 			r = new DoubleToken(type, x);
-			double_map.put(key, r);
+			doubleMap.put(key, r);
 			
 			//auto-increase the freq to account for double token's definition
 			char[] stringx = ("" + x).toCharArray();
 			for (char c : stringx) charToken(c); //freq
-			Token specifier = specifier_map.get(type); //created on init
+			Token specifier = specifierMap.get(type); //created on init
 			freq.put(specifier, freq.getOrDefault(specifier, 0) + 1);
 		}
 		return r;
@@ -252,40 +252,40 @@ public class SchematicBuilder {
 	
 	public StringToken getString(TokenType type, String s) {
 		StringKey key = new StringKey(type, s);
-		StringToken r = string_map.get(key);
+		StringToken r = stringMap.get(key);
 		if (r == null) {
 			r = new StringToken(type, s);
-			string_map.put(key, r);
+			stringMap.put(key, r);
 			
 			//auto-increase the freq to account for string token's definition
 			for (char c : s.toCharArray()) charToken(c); //freq
-			Token specifier = specifier_map.get(type); //created on init
+			Token specifier = specifierMap.get(type); //created on init
 			freq.put(specifier, freq.getOrDefault(specifier, 0) + 1);
 		}
 		return r;
 	}
 	
 	private CharToken charToken(char c) {
-		CharToken ctoken = char_map.get(c);
+		CharToken ctoken = charMap.get(c);
 		if (ctoken == null) {
 			ctoken = new CharToken(c);
-			char_map.put(c, ctoken);
+			charMap.put(c, ctoken);
 		}
 		freq.put(ctoken, freq.getOrDefault(ctoken, 0) + 1);
 		return ctoken;
 	}
 	
 	private void addToken(TokenType specifier) {
-		addToken(specifier, encoded_output);
+		addToken(specifier, encodedOutput);
 	}
 	
 	private void addToken(TokenType specifier, List<Token> list) {
-		addToken(specifier_map.get(specifier), list);
+		addToken(specifierMap.get(specifier), list);
 	}
 	
 	private void addToken(Token token) {
 		freq.put(token, freq.getOrDefault(token, 0) + 1);
-		addToken(token, encoded_output);
+		addToken(token, encodedOutput);
 	}
 	
 	private void addToken(Token token, List<Token> list) {
@@ -303,7 +303,7 @@ public class SchematicBuilder {
 	private void encodeBlocks(DexterityDisplay d) {
 		d.sortBlocks();
 		double epsilon = 0.00001;
-		Token block_delimiter = specifier_map.get(TokenType.BLOCK_DELIMITER), display_delimiter = specifier_map.get(TokenType.DISPLAY_DELIMITER);
+		Token block_delimiter = specifierMap.get(TokenType.BLOCK_DELIMITER), display_delimiter = specifierMap.get(TokenType.DISPLAY_DELIMITER);
 		for (DexBlock db : d.getBlocks()) {
 			addToken(getString(TokenType.BLOCKDATA, db.getEntity().getBlock().getAsString().replaceFirst("minecraft:", "")));
 			
@@ -353,10 +353,10 @@ public class SchematicBuilder {
 
 	private List<Token> createObjectTokens(boolean create_list) {
 		List<Token> defs = create_list ? new ArrayList<>() : null;
-		Token delimiter = specifier_map.get(TokenType.BLOCK_DELIMITER);
+		Token delimiter = specifierMap.get(TokenType.BLOCK_DELIMITER);
 		
 		//add token definitions to freq map for doubles
-		for (Entry<DoubleKey,DoubleToken> entry : double_map.entrySet()) {
+		for (Entry<DoubleKey,DoubleToken> entry : doubleMap.entrySet()) {
 			DoubleToken token = entry.getValue();
 			String valstr = "" + DexUtils.round(token.getDoubleValue(), DECIMAL_PRECISION);
 			
@@ -367,7 +367,7 @@ public class SchematicBuilder {
 			addToken(delimiter, defs);
 		}
 		//add token defs to freq map for strings
-		for (Entry<StringKey,StringToken> entry : string_map.entrySet()) {
+		for (Entry<StringKey,StringToken> entry : stringMap.entrySet()) {
 			StringToken token = entry.getValue();
 			
 			if (create_list) addString("" + token.getTag().length, defs);
@@ -382,13 +382,13 @@ public class SchematicBuilder {
 	}
 	
 	private void assignTags() {
-		if (encoded_output.size() == 0) return;
+		if (encodedOutput.size() == 0) return;
 		
-		Token end_data = new Token(TokenType.DATA_END);
-		addToken(end_data);
+		Token endData = new Token(TokenType.DATA_END);
+		addToken(endData);
 		
-		if (encoded_output.size() == 1) {
-			encoded_output.get(0).setTag(new BinaryTag(1));
+		if (encodedOutput.size() == 1) {
+			encodedOutput.get(0).setTag(new BinaryTag(1));
 			return;
 		}
 		LinkedList<HuffmanTree> forest = new LinkedList<>();
@@ -396,8 +396,8 @@ public class SchematicBuilder {
 		createObjectTokens(false); //count the planned tokens into frequency map for encoding
 		
 		//init forest
-		for (Entry<Token, Integer> freq_entry : freq.entrySet()) {
-			HuffmanTree node = new HuffmanTree(freq_entry.getKey(), freq_entry.getValue());
+		for (Entry<Token, Integer> freqEntry : freq.entrySet()) {
+			HuffmanTree node = new HuffmanTree(freqEntry.getKey(), freqEntry.getValue());
 			forest.addLast(node);
 		}
 		
@@ -420,6 +420,6 @@ public class SchematicBuilder {
 		
 		HuffmanTree root = forest.getFirst();
 		root.assignTags();
-		assigned_tags = true;
+		assignedTags = true;
 	}
 }

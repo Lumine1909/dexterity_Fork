@@ -62,16 +62,16 @@ public class Dexterity extends JavaPlugin {
 	
 	private HashMap<String,DexterityDisplay> displays = new HashMap<>();
 	private HashMap<UUID,DexSession> sessions = new HashMap<>();
-	private HashMap<UUID,DexBlock> display_map = new HashMap<>();
-	private HashMap<UUID, String> unloaded_uuids = new HashMap<>();
+	private HashMap<UUID,DexBlock> displayMap = new HashMap<>();
+	private HashMap<UUID, String> unloadedUUIDs = new HashMap<>();
 	private FileConfiguration lang, defaultLang;
 	
-	private String chat_color, chat_color2, chat_color3;
+	private String chatColor, chatColor2, chatColor3;
 	private DexterityAPI api;
-	private int max_volume = 25000;
+	private int maxVolume = 25000;
 	private WorldEditPlugin we = null;
-	private boolean legacy = false, has_unloaded_displays = false;
-	private Material wand_item;
+	private boolean legacy = false, hasUnloadedDisplays = false;
+	private Material wandItem;
 	
 	public static final String defaultLangName = "en-US.yml";
 		
@@ -89,8 +89,8 @@ public class Dexterity extends JavaPlugin {
 		new DexterityCommand(this);
 		new EventListeners(this);
 		
-		Plugin we_plugin = Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
-		if (we_plugin != null) we = (WorldEditPlugin) we_plugin;
+		Plugin wePlugin = Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
+		if (wePlugin != null) we = (WorldEditPlugin) wePlugin;
 		
 		new BukkitRunnable() { //load post-world, once scheduler is running
 			@Override
@@ -102,9 +102,9 @@ public class Dexterity extends JavaPlugin {
 		File schem = new File(getDataFolder().getAbsolutePath() + "/schematics");
 		if (!schem.exists()) schem.mkdirs();
 		
-		wand_item = Material.BLAZE_ROD;
+		wandItem = Material.BLAZE_ROD;
 		try {
-			wand_item = Material.valueOf(getConfig().getString("wand-item").toUpperCase());
+			wandItem = Material.valueOf(getConfig().getString("wand-item").toUpperCase());
 		} catch (Exception ex) {
 			Bukkit.getLogger().warning("Could not find material type for Dexterity wand-item: " + getConfig().getString("wand-item"));
 		}
@@ -117,11 +117,11 @@ public class Dexterity extends JavaPlugin {
 	}
 	
 	public void loadConfigSettings() {
-		chat_color = parseChatColor(getConfig().getString("primary-color"));
-		chat_color2 = parseChatColor(getConfig().getString("secondary-color"));
-		chat_color3 = parseChatColor(getConfig().getString("tertiary-color"));
-		int config_mv = getConfig().getInt("max-selection-volume");
-		if (config_mv > 0) max_volume = config_mv;
+		chatColor = parseChatColor(getConfig().getString("primary-color"));
+		chatColor2 = parseChatColor(getConfig().getString("secondary-color"));
+		chatColor3 = parseChatColor(getConfig().getString("tertiary-color"));
+		int configMaxVal = getConfig().getInt("max-selection-volume");
+		if (configMaxVal > 0) maxVolume = configMaxVal;
 		loadLanguageFile(false);
 	}
 	
@@ -143,17 +143,17 @@ public class Dexterity extends JavaPlugin {
 	}
 	
 	public String getChatColor() {
-		return chat_color;
+		return chatColor;
 	}
 	public String getChatColor2() {
-		return chat_color2;
+		return chatColor2;
 	}
 	public String getChatColor3() {
-		return chat_color3;
+		return chatColor3;
 	}
 	
 	public int getMaxVolume() {
-		return max_volume;
+		return maxVolume;
 	}
 	
 	public boolean usingWorldEdit() {
@@ -219,22 +219,22 @@ public class Dexterity extends JavaPlugin {
 	
 	@Deprecated
 	public void setMappedDisplay(DexBlock b) { //handled by Dexterity - do not use in API
-		display_map.put(b.getEntity().getUniqueId(), b);
-		if (!b.getUniqueId().equals(b.getEntity().getUniqueId())) display_map.put(b.getUniqueId(), b);
+		displayMap.put(b.getEntity().getUniqueId(), b);
+		if (!b.getUniqueId().equals(b.getEntity().getUniqueId())) displayMap.put(b.getUniqueId(), b);
 	}
 	
 	public DexBlock getMappedDisplay(UUID block) {
-		return display_map.get(block);
+		return displayMap.get(block);
 	}
 	
 	public Material getWandType() {
-		return wand_item;
+		return wandItem;
 	}
 	
 	@Deprecated
 	public void clearMappedDisplay(DexBlock block) { //handled by Dexterity - do not use in API
-		display_map.remove(block.getEntity().getUniqueId());
-		display_map.remove(block.getUniqueId());
+		displayMap.remove(block.getEntity().getUniqueId());
+		displayMap.remove(block.getUniqueId());
 	}
 	
 	public String getConfigString(String dir, String def) {
@@ -265,17 +265,17 @@ public class Dexterity extends JavaPlugin {
 			Bukkit.getLogger().warning("Language file is missing '" + dir + "', using the value from the default instead.");
 		}
 		return s
-				.replaceAll("\\Q&^\\E", chat_color)
-				.replaceAll("\\Q&**\\E", chat_color3)
-				.replaceAll("\\Q&*\\E", chat_color2)
+				.replaceAll("\\Q&^\\E", chatColor)
+				.replaceAll("\\Q&**\\E", chatColor3)
+				.replaceAll("\\Q&*\\E", chatColor2)
 				.replace('&', ChatColor.COLOR_CHAR)
 				.replaceAll("\\Q[newline]\\E", "\n")
 				.replaceAll("\\n", "\n");
 	}
 	
-	private void loadLanguageFile(boolean default_lang) {
+	private void loadLanguageFile(boolean isDefaultLang) {
 		String langName;
-		if (default_lang) langName = defaultLangName;
+		if (isDefaultLang) langName = defaultLangName;
 		else {
 			langName = getConfig().getString("lang-file");
 			if (langName == null) {
@@ -342,12 +342,12 @@ public class Dexterity extends JavaPlugin {
 		
 		displays.clear();
 		sessions.clear();
-		int display_curr_size = displays.size();
+		int displayCurrSize = displays.size();
 		
 		try {
 			
 			for (File f : folder.listFiles()) loadDisplay(f, true);
-			return displays.size() - display_curr_size;
+			return displays.size() - displayCurrSize;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			Bukkit.getLogger().severe("Could not load Dexterity displays!");
@@ -363,7 +363,7 @@ public class Dexterity extends JavaPlugin {
 
 		//load entities by uuid
 		List<BlockDisplay> blocks = new ArrayList<>();
-		boolean missing_blocks = false;
+		boolean missingBlocks = false;
 		for (String uuid_str : afile.getStringList("uuids")) {
 			UUID uuid = UUID.fromString(uuid_str);
 			Entity entity = Bukkit.getEntity(uuid);
@@ -371,12 +371,12 @@ public class Dexterity extends JavaPlugin {
 			if (entity != null && entity instanceof BlockDisplay) {
 				blocks.add((BlockDisplay) entity);
 			} else {
-				unloaded_uuids.put(uuid, label);
-				has_unloaded_displays = true;
-				missing_blocks = true;
+				unloadedUUIDs.put(uuid, label);
+				hasUnloadedDisplays = true;
+				missingBlocks = true;
 			}
 		}
-		if (missing_blocks) {
+		if (missingBlocks) {
 			if (verbose) Bukkit.getLogger().warning("Some of the entities for display '" + label + "' are unloaded!");
 			return;
 		}
@@ -386,42 +386,42 @@ public class Dexterity extends JavaPlugin {
 		double sx = afile.getDouble("scale-x");
 		double sy = afile.getDouble("scale-y");
 		double sz = afile.getDouble("scale-z");
-		float base_yaw = (float) afile.getDouble("yaw");
-		float base_pitch = (float) afile.getDouble("pitch");
-		float base_roll = (float) afile.getDouble("roll");
+		float baseYaw = (float) afile.getDouble("yaw");
+		float basePitch = (float) afile.getDouble("pitch");
+		float baseRoll = (float) afile.getDouble("roll");
 		Vector scale = new Vector(sx == 0 ? 1 : sx, sy == 0 ? 1 : sy, sz == 0 ? 1 : sz);
 		DexterityDisplay disp = new DexterityDisplay(this, center, scale, label);
-		disp.setBaseRotation(base_yaw, base_pitch, base_roll);
+		disp.setBaseRotation(baseYaw, basePitch, baseRoll);
 		
 		for (BlockDisplay bd : blocks) {
 			disp.addBlock(new DexBlock(bd, disp));
 		}
 		
 		//get click commands
-		ConfigurationSection cmd_section = afile.getConfigurationSection("commands");
-		if (cmd_section != null) {
-			for (String key : cmd_section.getKeys(false)) {
+		ConfigurationSection cmdSection = afile.getConfigurationSection("commands");
+		if (cmdSection != null) {
+			for (String key : cmdSection.getKeys(false)) {
 				disp.addCommand(new InteractionCommand(afile.getConfigurationSection("commands." + key)));
 			}
 		}
 		
 		//seat
-		double seat_y_offset = afile.getDouble("seat-offset", Double.MAX_VALUE);
-		if (seat_y_offset < Double.MAX_VALUE) {
+		double seatYOffset = afile.getDouble("seat-offset", Double.MAX_VALUE);
+		if (seatYOffset < Double.MAX_VALUE) {
 			SitAnimation a = new SitAnimation(disp);
-			if (seat_y_offset != 0) a.setSeatOffset(new Vector(0, seat_y_offset, 0));
+			if (seatYOffset != 0) a.setSeatOffset(new Vector(0, seatYOffset, 0));
 			disp.addAnimation(a);
 		}
 		
 		//display drop item
-		String item_schem = afile.getString("item-schem-name");
-		if (item_schem != null) disp.setDropItem(afile.getItemStack("item"), item_schem);
+		String itemSchem = afile.getString("item-schem-name");
+		if (itemSchem != null) disp.setDropItem(afile.getItemStack("item"), itemSchem);
 		
 		//display owners
-		List<String> owner_uuids = afile.getStringList("owners");
-		if (owner_uuids != null && owner_uuids.size() > 0) {
+		List<String> ownerUUIDs = afile.getStringList("owners");
+		if (ownerUUIDs != null && ownerUUIDs.size() > 0) {
 			List<OfflinePlayer> owners = new ArrayList<>();
-			for (String u : owner_uuids) {
+			for (String u : ownerUUIDs) {
 				OfflinePlayer op = Bukkit.getOfflinePlayer(UUID.fromString(u));
 				if (op == null || op.getName() == null) continue;
 				owners.add(op);
@@ -440,10 +440,10 @@ public class Dexterity extends JavaPlugin {
 		}.runTaskAsynchronously(this);
 
 		//set parent display
-		String parent_label = afile.getString("parent");
-		if (parent_label != null) {
-			DexterityDisplay parent = getDisplay(parent_label);
-			if (parent == null && verbose) Bukkit.getLogger().severe("Could not find parent display '" + parent_label + "'!");
+		String parentLabel = afile.getString("parent");
+		if (parentLabel != null) {
+			DexterityDisplay parent = getDisplay(parentLabel);
+			if (parent == null && verbose) Bukkit.getLogger().severe("Could not find parent display '" + parentLabel + "'!");
 			else {
 				parent.addSubdisplay(disp);
 				disp.setParent(parent);
@@ -547,25 +547,25 @@ public class Dexterity extends JavaPlugin {
 	 * @param c
 	 */
 	public void processUnloadedDisplaysInChunk(Chunk c) {
-		if (!has_unloaded_displays) return;
+		if (!hasUnloadedDisplays) return;
 		
-		Set<String> unloaded_labels = new HashSet<>();
+		Set<String> unloadedLabels = new HashSet<>();
 		for (Entity entity : c.getEntities()) {
 			if (!(entity instanceof BlockDisplay)) continue;
-			String label = unloaded_uuids.get(entity.getUniqueId());
-			if (label != null && !unloaded_labels.contains(label)) unloaded_labels.add(label);
+			String label = unloadedUUIDs.get(entity.getUniqueId());
+			if (label != null && !unloadedLabels.contains(label)) unloadedLabels.add(label);
 		}
 		
-		for (String label : unloaded_labels) { //possible displays that can now be loaded
+		for (String label : unloadedLabels) { //possible displays that can now be loaded
 			File f = getDisplayFile(label);
 			loadDisplay(f, true); //won't load if not all displays are there
 			DexterityDisplay d = getDisplay(label);
 			if (d != null) {
-				for (DexBlock db : d.getBlocks()) unloaded_uuids.remove(db.getEntity().getUniqueId());
+				for (DexBlock db : d.getBlocks()) unloadedUUIDs.remove(db.getEntity().getUniqueId());
 			}
 		}
 		
-		if (unloaded_uuids.size() == 0) has_unloaded_displays = false;
+		if (unloadedUUIDs.size() == 0) hasUnloadedDisplays = false;
 	}
 	
 	/**
@@ -573,7 +573,7 @@ public class Dexterity extends JavaPlugin {
 	 * @return
 	 */
 	public boolean hasUnloadedDisplays() {
-		return has_unloaded_displays;
+		return hasUnloadedDisplays;
 	}
 	
 	/**
@@ -592,13 +592,13 @@ public class Dexterity extends JavaPlugin {
 			if (purgeHelper(disp)) count++;
 		}
 		
-		has_unloaded_displays = false;
-		List<String> unique_labels = new ArrayList<>();
-		unloaded_uuids.entrySet().forEach(e -> {
-			if (!unique_labels.contains(e.getValue())) unique_labels.add(e.getValue());
+		hasUnloadedDisplays = false;
+		List<String> uniqueLabels = new ArrayList<>();
+		unloadedUUIDs.entrySet().forEach(e -> {
+			if (!uniqueLabels.contains(e.getValue())) uniqueLabels.add(e.getValue());
 		});
-		unloaded_uuids.clear();
-		for (String label : unique_labels) {
+		unloadedUUIDs.clear();
+		for (String label : uniqueLabels) {
 			File f = getDisplayFile(label);
 			try {
 				if (f != null) {
@@ -648,7 +648,7 @@ public class Dexterity extends JavaPlugin {
 	/**
 	 * Unmaps the label to the display. For API use, see {@link DexterityDisplay#setLabel(String)} for null label
 	 */
-	public void unregisterDisplay(DexterityDisplay d, boolean from_merge) {
+	public void unregisterDisplay(DexterityDisplay d, boolean fromMerge) {
 		if (!d.isSaved()) return;
 		displays.remove(d.getLabel());
 		
@@ -673,15 +673,15 @@ public class Dexterity extends JavaPlugin {
 	/**
 	 * Emulates how a block display can be placed on one of the faces of another block display, such as when a player clicks a block.
 	 * @param clicked
-	 * @param place_data
+	 * @param placeData
 	 * @return
 	 */
-	public BlockDisplay putBlock(ClickedBlockDisplay clicked, BlockData place_data) {
-		DexBlock clicked_db = this.getMappedDisplay(clicked.getBlockDisplay().getUniqueId());
-		DexterityDisplay clicked_display = null;
-		if (clicked_db != null) clicked_display = clicked_db.getDexterityDisplay();
+	public BlockDisplay putBlock(ClickedBlockDisplay clicked, BlockData placeData) {
+		DexBlock clickedDB = this.getMappedDisplay(clicked.getBlockDisplay().getUniqueId());
+		DexterityDisplay clickedDisplay = null;
+		if (clickedDB != null) clickedDisplay = clickedDB.getDexterityDisplay();
 		
-		Vector placingDimensions = DexUtils.getBlockDimensions(place_data);
+		Vector placingDimensions = DexUtils.getBlockDimensions(placeData);
 
 		Vector blockscale = DexUtils.vector(clicked.getBlockDisplay().getTransformation().getScale());
 		Vector blockdimensions = DexUtils.getBlockDimensions(clicked.getBlockDisplay().getBlock());
@@ -701,25 +701,25 @@ public class Dexterity extends JavaPlugin {
 		Vector dir = clicked.getNormal();
 		Vector delta = dir.clone().multiply(DexUtils.faceToDirectionAbs(clicked.getBlockFace(), offset));
 
-		DexTransformation trans = (clicked_db == null ? new DexTransformation(clicked.getBlockDisplay().getTransformation()) : clicked_db.getTransformation());
+		DexTransformation trans = (clickedDB == null ? new DexTransformation(clicked.getBlockDisplay().getTransformation()) : clickedDB.getTransformation());
 
 		Location fromLoc = clicked.getDisplayCenterLocation();
 		if (clicked.getBlockFace() != BlockFace.UP && clicked.getBlockFace() != BlockFace.DOWN) fromLoc.add(clicked.getUpDir().multiply((blockscale.getY()/2)*(1 - blockdimensions.getY())));
 
 
 		BlockDisplay b = this.spawn(fromLoc.clone().add(delta), BlockDisplay.class, a -> {
-			a.setBlock(place_data);
+			a.setBlock(placeData);
 			trans.setScale(blockscale);
 			if (clicked.getRollOffset() == null) trans.setDisplacement(blockscale.clone().multiply(-0.5));
 			else trans.setDisplacement(blockscale.clone().multiply(-0.5).add(clicked.getRollOffset().getOffset()));
 			a.setTransformation(trans.build());
 		});
 
-		if (clicked_display != null) {
-			DexBlock new_db = new DexBlock(b, clicked_display, clicked_db.getRoll());
-			new_db.getTransformation().setDisplacement(new_db.getTransformation().getDisplacement().subtract(clicked_db.getTransformation().getRollOffset()));
-			new_db.getTransformation().setRollOffset(clicked_db.getTransformation().getRollOffset().clone());
-			clicked_display.addBlock(new_db);
+		if (clickedDisplay != null) {
+			DexBlock newDB = new DexBlock(b, clickedDisplay, clickedDB.getRoll());
+			newDB.getTransformation().setDisplacement(newDB.getTransformation().getDisplacement().subtract(clickedDB.getTransformation().getRollOffset()));
+			newDB.getTransformation().setRollOffset(clickedDB.getTransformation().getRollOffset().clone());
+			clickedDisplay.addBlock(newDB);
 		}
 		return b;
 	}

@@ -65,16 +65,16 @@ public class RideAnimation extends Animation implements RideableAnimation {
 				
 				display.teleport(dir);
 				RotationPlan plan = new RotationPlan();
-				plan.set_y = true;
+				plan.setY = true;
 				plan.async = false;
 				if (look_mode == LookMode.YAW_ONLY) {
-					plan.y_deg = 180 - p.getLocation().getYaw();
+					plan.yDeg = 180 - p.getLocation().getYaw();
 					display.rotate(plan);
 				}
 				else if (look_mode == LookMode.YAW_PITCH) {
-					plan.y_deg = 180 - p.getLocation().getYaw();
-					plan.pitch_deg = p.getLocation().getPitch();
-					plan.set_pitch = true;
+					plan.yDeg = 180 - p.getLocation().getYaw();
+					plan.pitchDeg = p.getLocation().getPitch();
+					plan.setPitch = true;
 					display.rotate(plan);
 				}
 				

@@ -19,8 +19,8 @@ public class CommandContext {
 	private Dexterity plugin;
 	private DexSession session;
 	private HashMap<String,Integer> attr;
-	private HashMap<String,String> attr_str;
-	private HashMap<String, Double> attr_d;
+	private HashMap<String,String> attrStr;
+	private HashMap<String, Double> attrDoubles;
 	private List<String> flags, defs;
 	
 	public CommandContext(Dexterity plugin, Player p, String[] args) {
@@ -40,13 +40,13 @@ public class CommandContext {
 	}
 	
 	public HashMap<String, String> getStringAttrs(){
-		if (attr_str == null) attr_str = DexUtils.getAttributesStrings(args);
-		return attr_str;
+		if (attrStr == null) attrStr = DexUtils.getAttributesStrings(args);
+		return attrStr;
 	}
 	
 	public HashMap<String, Double> getDoubleAttrs(){
-		if (attr_d == null) attr_d = DexUtils.getAttributesDoubles(args);
-		return attr_d;
+		if (attrDoubles == null) attrDoubles = DexUtils.getAttributesDoubles(args);
+		return attrDoubles;
 	}
 	
 	public List<String> getFlags(){

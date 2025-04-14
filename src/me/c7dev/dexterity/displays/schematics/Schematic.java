@@ -36,7 +36,7 @@ import me.c7dev.dexterity.util.DexterityException;
  */
 public class Schematic {
 	
-	private String author = null, file_name;
+	private String author = null, fileName;
 	private int version = 0;
 	private HuffmanTree root = new HuffmanTree(null, null);
 	private List<Token> data = new ArrayList<>();
@@ -46,7 +46,7 @@ public class Schematic {
 	private MessageDigest sha256;
 
 	public Schematic(Dexterity plugin, String file_name) {
-		this.file_name = file_name;
+		this.fileName = file_name;
 		if (!file_name.endsWith("\\.dexterity")) file_name += ".dexterity";
 		this.plugin = plugin;
 		try {
@@ -339,7 +339,7 @@ public class Schematic {
 	 */
 	public void reloadBlocks(List<Token> data) { //block data interpreter
 		displays.clear();
-		SimpleDisplayState w = new SimpleDisplayState(plugin.getNextLabel(file_name));
+		SimpleDisplayState w = new SimpleDisplayState(plugin.getNextLabel(fileName));
 		World world = Bukkit.getWorlds().get(0); //placeholder
 		DexBlockState state = newState(world);
 		
@@ -349,7 +349,7 @@ public class Schematic {
 				w.addBlock(state); //won't add if data not set
 				if (w.getBlocks().size() > 0) {
 					displays.addLast(w);
-					w = new SimpleDisplayState(plugin.getNextLabel(file_name));
+					w = new SimpleDisplayState(plugin.getNextLabel(fileName));
 					state = newState(world);
 				}
 				continue;

@@ -50,11 +50,11 @@ public class DexterityDisplay {
 	
 	private Dexterity plugin;
 	private Location center;
-	private String label, item_schem_label;
+	private String label, itemSchemLabel;
 	private Vector scale;
 	private DexterityDisplay parent;
-	private boolean started_animations = false, zero_pitch = false, listed = true;
-	private UUID uuid = UUID.randomUUID(), editing_lock;
+	private boolean startedAnimations = false, zeroPitch = false, listed = true;
+	private UUID uuid = UUID.randomUUID(), editingLock;
 	private DexRotation rot = null;
 	private ItemStack item;
 	
@@ -172,10 +172,10 @@ public class DexterityDisplay {
 	 * Sets the players that own this display
 	 * @param u
 	 */
-	public void setOwners(List<OfflinePlayer> new_owners) {
+	public void setOwners(List<OfflinePlayer> newOwners) {
 		owners = new ArrayList<>();
-		if (new_owners == null) return;
-		for (OfflinePlayer o : new_owners) owners.add(o.getUniqueId());
+		if (newOwners == null) return;
+		for (OfflinePlayer o : newOwners) owners.add(o.getUniqueId());
 	}
 	
 	/**
@@ -214,7 +214,7 @@ public class DexterityDisplay {
 		Vector cvec = new Vector(0, 0, 0);
 		World w;
 		int n = 0;
-		zero_pitch = true;
+		zeroPitch = true;
 		
 		if (blocks.size() == 0) {
 			w = plugin.getDefaultWorld();
@@ -232,7 +232,7 @@ public class DexterityDisplay {
 				if (scale.getY() > scaley) scaley = scale.getY();
 				if (scale.getZ() > scalez) scalez = scale.getZ();
 				
-				if (zero_pitch && db.getEntity().getLocation().getPitch() != 0) zero_pitch = false;
+				if (zeroPitch && db.getEntity().getLocation().getPitch() != 0) zeroPitch = false;
 			}
 			scale = new Vector(scalex, scaley, scalez);
 		}
@@ -434,18 +434,18 @@ public class DexterityDisplay {
 	 * Sets the item that will be dropped if a player breaks the display
 	 * @param item
 	 */
-	public void setDropItem(ItemStack item, String schem_name) {
+	public void setDropItem(ItemStack item, String schemName) {
 		if (!isSaved()) throw new RuntimeException("Can not set display's drop item when display is not saved.");
 		if (item == null) {
-			if (item_schem_label != null) {
-				File f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + item_schem_label);
+			if (itemSchemLabel != null) {
+				File f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + itemSchemLabel);
 				if (f.exists()) {
 					try {
 						f.delete();
 					} catch (Exception ex) {}
 				}
 			}
-			item_schem_label = null;
+			itemSchemLabel = null;
 		}
 		else {
 			if (item.getType() == Material.AIR) {
@@ -454,11 +454,11 @@ public class DexterityDisplay {
 			}
 			
 			//save new schem if not exists
-			item_schem_label = schem_name;
-			File schem_f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + schem_name + ".dexterity");
+			itemSchemLabel = schemName;
+			File schem_f = new File(plugin.getDataFolder().getAbsolutePath() + "/schematics/" + schemName + ".dexterity");
 			if (!schem_f.exists()) {
 				SchematicBuilder s = new SchematicBuilder(plugin, this);
-				s.save(schem_name, "CONSOLE", true);
+				s.save(schemName, "CONSOLE", true);
 			}
 		}
 		this.item = item.clone();
@@ -466,14 +466,14 @@ public class DexterityDisplay {
 	}
 	
 	public String getDropItemSchematicName() {
-		return item_schem_label;
+		return itemSchemLabel;
 	}
 	
 	private void updateDropItemMeta() {
-		if (item == null || item_schem_label == null || label == null) return;
+		if (item == null || itemSchemLabel == null || label == null) return;
 		NamespacedKey key = new NamespacedKey(plugin, "dex-schem-label");
 		ItemMeta meta = item.getItemMeta();
-		meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, item_schem_label);
+		meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, itemSchemLabel);
 		
 		String disp_label = DexUtils.getEffectiveLabel(label);
 		
@@ -506,13 +506,13 @@ public class DexterityDisplay {
 	/**
 	 * Overrides the blocks in this display
 	 * @param entities A list of unique DexBlocks
-	 * @param recalc_center Recalculates the center point and scale if true
+	 * @param recalcCenter Recalculates the center point and scale if true
 	 * @see #getBlocks()
 	 */
-	public void setBlocks(List<DexBlock> entities, boolean recalc_center){
+	public void setBlocks(List<DexBlock> entities, boolean recalcCenter){
 		this.blocks = entities;
 		plugin.unregisterDisplay(this);
-		if (recalc_center) recalculateCenter();
+		if (recalcCenter) recalculateCenter();
 	}
 	
 	/**
@@ -603,7 +603,7 @@ public class DexterityDisplay {
 	 * @return true if there are animations running
 	 */
 	public boolean hasStartedAnimations() {
-		return started_animations;
+		return startedAnimations;
 	}
 	
 	/**
@@ -611,12 +611,12 @@ public class DexterityDisplay {
 	 * @return true if only yaw is involved
 	 */
 	public boolean isYawOnly() { //if yaw-only rotation optimization is appropriate
-		return zero_pitch;
+		return zeroPitch;
 	}
 	
 	@Deprecated
 	public void setZeroPitch(boolean b) {
-		zero_pitch = b;
+		zeroPitch = b;
 	}
 	
 	/**
@@ -631,7 +631,7 @@ public class DexterityDisplay {
 		for (DexBlock b : subdisplay.getBlocks()) {
 			b.setDexterityDisplay(this);
 			blocks.add(b);
-			if (zero_pitch && b.getEntity().getLocation().getPitch() != 0) zero_pitch = false;
+			if (zeroPitch && b.getEntity().getLocation().getPitch() != 0) zeroPitch = false;
 		}
 		for (DexterityDisplay subdisp : subdisplay.getSubdisplays()) {
 			subdisp.merge(this, null);
@@ -641,38 +641,38 @@ public class DexterityDisplay {
 	
 	/**
 	 * Make this display become a child node of either a new display saved as new_group, or a child display of newparent
-	 * @param newparent The display that will either be a brother node or parent node depending on if a new parent display is created
-	 * @param new_group Label of the new parent display, or null for no new parent display
+	 * @param newParent The display that will either be a brother node or parent node depending on if a new parent display is created
+	 * @param newGroup Label of the new parent display, or null for no new parent display
 	 * @return The parent display after the merge operation
 	 */
-	public DexterityDisplay merge(DexterityDisplay newparent, String new_group) {
-		if (newparent == this || newparent.getLabel().equals(label) || subdisplays.contains(newparent) || parent != null) throw new IllegalArgumentException("Cannot merge with self!");
-		if (rootDisplay(this).containsSubdisplay(newparent)) throw new IllegalArgumentException("One display must be a root node to be able to merge!");
-		if (!newparent.getCenter().getWorld().getName().equals(center.getWorld().getName())) throw new IllegalArgumentException("Both displays must be in the same world!");
-		if (new_group != null && plugin.getDisplayLabels().contains(new_group)) throw new IllegalArgumentException("New group label is already in use!");
-		if (!isSaved() || !newparent.isSaved()) throw new IllegalArgumentException("Both displays must be saved!");
+	public DexterityDisplay merge(DexterityDisplay newParent, String newGroup) {
+		if (newParent == this || newParent.getLabel().equals(label) || subdisplays.contains(newParent) || parent != null) throw new IllegalArgumentException("Cannot merge with self!");
+		if (rootDisplay(this).containsSubdisplay(newParent)) throw new IllegalArgumentException("One display must be a root node to be able to merge!");
+		if (!newParent.getCenter().getWorld().getName().equals(center.getWorld().getName())) throw new IllegalArgumentException("Both displays must be in the same world!");
+		if (newGroup != null && plugin.getDisplayLabels().contains(newGroup)) throw new IllegalArgumentException("New group label is already in use!");
+		if (!isSaved() || !newParent.isSaved()) throw new IllegalArgumentException("Both displays must be saved!");
 		
 		plugin.unregisterDisplay(this, true);
 		stopAnimations(true);
-		newparent.stopAnimations(true);
-		Vector c2v = center.toVector().add(newparent.getCenter().toVector()).multiply(0.5); //midpoint
+		newParent.stopAnimations(true);
+		Vector c2v = center.toVector().add(newParent.getCenter().toVector()).multiply(0.5); //midpoint
 		Location c2 = new Location(center.getWorld(), c2v.getX(), c2v.getY(), c2v.getZ());
-		newparent.setCenter(c2);
+		newParent.setCenter(c2);
 		
 		DexterityDisplay r;
-		if (new_group == null) {
-			newparent.addSubdisplay(this);
-			setParent(newparent);
-			r = newparent;
+		if (newGroup == null) {
+			newParent.addSubdisplay(this);
+			setParent(newParent);
+			r = newParent;
 		} else {
-			plugin.unregisterDisplay(newparent, true);
+			plugin.unregisterDisplay(newParent, true);
 			DexterityDisplay p = new DexterityDisplay(plugin);
-			p.setLabel(new_group);
+			p.setLabel(newGroup);
 			
 			setParent(p);
-			newparent.setParent(p);
+			newParent.setParent(p);
 			p.addSubdisplay(this);
-			p.addSubdisplay(newparent);
+			p.addSubdisplay(newParent);
 			r = p;
 		}
 		
@@ -685,7 +685,7 @@ public class DexterityDisplay {
 	 * @return UUID of the offline player if in editing lock, otherwise null
 	 */
 	public UUID getEditingLock() {
-		return editing_lock;
+		return editingLock;
 	}
 	
 	/**
@@ -693,7 +693,7 @@ public class DexterityDisplay {
 	 * @param u The UUID of the player who has this display locked to them
 	 */
 	public void setEditingLock(UUID u) {
-		editing_lock = u;
+		editingLock = u;
 	}
 	
 	/**
@@ -785,7 +785,7 @@ public class DexterityDisplay {
 	 */
 	public void startAnimations() {
 		if (hasStartedAnimations()) return;
-		started_animations = true;
+		startedAnimations = true;
 		for (Animation a : animations) {
 			a.start();
 		}
@@ -796,7 +796,7 @@ public class DexterityDisplay {
 	 * @param force true if the animations should be killed instead of allowed to stop
 	 */
 	public void stopAnimations(boolean force) {
-		started_animations = false;
+		startedAnimations = false;
 		for (Animation a : animations) {
 			if (force) a.kill();
 			else a.stop();
@@ -978,10 +978,10 @@ public class DexterityDisplay {
 	
 	/**
 	 * Teleport the selection so that its corner or center aligns with the nearest whole block
-	 * @param to_center If true, aligns based on the display's center, otherwise by its corner.
+	 * @param toCenter If true, aligns based on the display's center, otherwise by its corner.
 	 */
-	public void align(boolean to_center) {
-		if (to_center) {
+	public void align(boolean toCenter) {
+		if (toCenter) {
 			Vector locv = center.toVector();
 			Vector locvb = new Vector(Math.round(locv.getX()), Math.round(locv.getY()), Math.round(locv.getZ()));
 			Vector diff = locvb.clone().subtract(locv);
@@ -1008,34 +1008,34 @@ public class DexterityDisplay {
 	
 	/**
 	 * Rotate the display along the yaw, pitch, and roll directions
-	 * @param yaw_deg
-	 * @param pitch_deg
-	 * @param roll_deg
+	 * @param yawDeg
+	 * @param pitchDeg
+	 * @param rollDeg
 	 * @return The quaternion representing the rotation
 	 */
-	public Quaterniond rotate(float yaw_deg, float pitch_deg, float roll_deg) {
+	public Quaterniond rotate(float yawDeg, float pitchDeg, float rollDeg) {
 		RotationPlan plan = new RotationPlan();
-		plan.yaw_deg = yaw_deg;
-		plan.pitch_deg = pitch_deg;
-		plan.roll_deg = roll_deg;
+		plan.yawDeg = yawDeg;
+		plan.pitchDeg = pitchDeg;
+		plan.rollDeg = rollDeg;
 		return rotate(plan);
 	}
 	
 	/**
 	 * Reset the rotation for yaw, pitch, and roll directions
-	 * @param yaw_deg
-	 * @param pitch_deg
-	 * @param roll_deg
+	 * @param yawDeg
+	 * @param pitchDeg
+	 * @param rollDeg
 	 * @return The quaternion representing the rotation
 	 */
-	public Quaterniond setRotation(float yaw_deg, float pitch_deg, float roll_deg) {
+	public Quaterniond setRotation(float yawDeg, float pitchDeg, float rollDeg) {
 		RotationPlan plan = new RotationPlan();
-		plan.yaw_deg = yaw_deg;
-		plan.pitch_deg = pitch_deg;
-		plan.roll_deg = roll_deg;
-		plan.set_yaw = true;
-		plan.set_pitch = true;
-		plan.set_roll = true;
+		plan.yawDeg = yawDeg;
+		plan.pitchDeg = pitchDeg;
+		plan.rollDeg = rollDeg;
+		plan.setYaw = true;
+		plan.setPitch = true;
+		plan.setRoll = true;
 		return rotate(plan);
 	}
 	
@@ -1060,11 +1060,11 @@ public class DexterityDisplay {
 	
 	/**
 	 * Gets or creates a rotation manager
-	 * @param create_new
+	 * @param createNew
 	 * @return the existing or new rotation manager
 	 */
-	public DexRotation getRotationManager(boolean create_new) {
-		if (rot == null && create_new) rot = new DexRotation(this);
+	public DexRotation getRotationManager(boolean createNew) {
+		if (rot == null && createNew) rot = new DexRotation(this);
 		return rot;
 	}
 	
@@ -1217,23 +1217,23 @@ public class DexterityDisplay {
 	 * @param axis 0 for X, 1 for Y, 2 for Z
 	 * @param m Mask to use, or null for no mask
 	 */
-	private void consolidate(List<DexBlock> rotblocks, int axis, Quaternionf q, List<DexBlock> toRemove, HashMap<DexBlock, Vector> deltas, HashMap<Material, Vector> sizeMap) { //assumed all same rotation
-		if (rotblocks.size() <= 1) return;
+	private void consolidate(List<DexBlock> rotBlocks, int axis, Quaternionf q, List<DexBlock> toRemove, HashMap<DexBlock, Vector> deltas, HashMap<Material, Vector> sizeMap) { //assumed all same rotation
+		if (rotBlocks.size() <= 1) return;
 		double epsilon = 0.001;
-		rotblocks.sort((l, r) -> {
+		rotBlocks.sort((l, r) -> {
 			double a = DexUtils.getParameter(l.getTempVector(), axis), b = DexUtils.getParameter(r.getTempVector(), axis);
 			if (Math.abs(a - b) < epsilon) return 0;
 			return a > b ? 1 : -1;
 		});
 		
-		for (int i = 0; i < rotblocks.size(); i++) {
-			DexBlock prev = rotblocks.get(i);
+		for (int i = 0; i < rotBlocks.size(); i++) {
+			DexBlock prev = rotBlocks.get(i);
 			Vector prev_loc = prev.getTempVector();
 			Vector s1 = prev.getTransformation().getScale();
 			double s1min = DexUtils.minValue(s1);
 			
-			for (int j = i+1; j < rotblocks.size(); j++) { //find the first block that is in the same axis, optimized by sort
-				DexBlock db = rotblocks.get(j);
+			for (int j = i+1; j < rotBlocks.size(); j++) { //find the first block that is in the same axis, optimized by sort
+				DexBlock db = rotBlocks.get(j);
 				Vector loc = db.getTempVector();
 				Vector s2 = db.getTransformation().getScale();
 				double epsilon2 = 0.001*Math.min(s1min, DexUtils.minValue(s2));
@@ -1258,19 +1258,19 @@ public class DexterityDisplay {
 						
 						//if close enough to be touching/overlapping, perform the consolidation between pair
 						if (diff - threshold <= epsilon2) {
-							double new_len = (threshold + diff) / DexUtils.getParameter(blocksize, axis);
+							double newLen = (threshold + diff) / DexUtils.getParameter(blocksize, axis);
 							double disp = DexUtils.getParameter(prev.getTransformation().getDisplacement(), axis);
 							
-							DexUtils.setParameter(s1, axis, new_len);
-							DexUtils.setParameter(prev.getTransformation().getDisplacement(), axis, -new_len/2);
+							DexUtils.setParameter(s1, axis, newLen);
+							DexUtils.setParameter(prev.getTransformation().getDisplacement(), axis, -newLen/2);
 							
-							Vector del = DexUtils.oneHot(axis, disp + (new_len*0.5));
+							Vector del = DexUtils.oneHot(axis, disp + (newLen*0.5));
 							del = DexUtils.vector(q.transformInverse(DexUtils.vectord(del)));
-							Vector existing_del = deltas.get(prev);
-							if (existing_del != null) del.add(existing_del);
+							Vector existingDel = deltas.get(prev);
+							if (existingDel != null) del.add(existingDel);
 							deltas.put(prev, del);
 							toRemove.add(db);
-							rotblocks.remove(db);
+							rotBlocks.remove(db);
 						}
 					}
 					break;

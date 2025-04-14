@@ -8,15 +8,14 @@ import me.c7dev.dexterity.displays.DexterityDisplay;
 
 public class LinearTranslationAnimation extends Animation {
 	
-	private Location start_loc;
-	private Location end_loc;
+	private Location startLoc, endLoc;
 			
 	public LinearTranslationAnimation(DexterityDisplay display, int ticks, Location end_loc) {
 		super(display, ticks);
 		
-		start_loc = display.getCenter();
-		this.end_loc = end_loc;
-		Vector displacement = end_loc.toVector().subtract(start_loc.toVector());
+		startLoc = display.getCenter();
+		this.endLoc = end_loc;
+		Vector displacement = end_loc.toVector().subtract(startLoc.toVector());
 				
 		super.setRunnable(new BukkitRunnable() {
 			Vector dtick = displacement.clone().multiply(1.0/ticks);
@@ -31,16 +30,16 @@ public class LinearTranslationAnimation extends Animation {
 	}
 	
 	public Location getStartLocation() {
-		return start_loc;
+		return startLoc;
 	}
 	
 	public Location getEndLocation() {
-		return end_loc;
+		return endLoc;
 	}
 	
 	@Override
 	public void reset() {
 		if (super.isStarted()) super.setPaused(true);
-		getDisplay().teleport(start_loc);
+		getDisplay().teleport(startLoc);
 	}
 }

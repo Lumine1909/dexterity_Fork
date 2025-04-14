@@ -12,13 +12,13 @@ import me.c7dev.dexterity.util.RotationPlan;
 public class RotationAnimation extends Animation {
 	
 	private RotationTransaction t;
-	private boolean no_interpolation = false;
+	private boolean interpolation = true;
 	
 	public RotationAnimation(DexterityDisplay display, int ticks, RotationPlan rotation) {
 		super(display, ticks);
 		RotationPlan r = rotation.clone();
-		r.x_deg /= ticks; r.y_deg /= ticks; r.z_deg /= ticks;
-		r.yaw_deg /= ticks; r.pitch_deg /= ticks; r.roll_deg /= ticks;
+		r.xDeg /= ticks; r.yDeg /= ticks; r.zDeg /= ticks;
+		r.yawDeg /= ticks; r.pitchDeg /= ticks; r.rollDeg /= ticks;
 		r.async = false;
 				
 		QueuedRotation rot = display.getRotationManager(true).prepareRotation(r, null);
@@ -34,13 +34,13 @@ public class RotationAnimation extends Animation {
 	}
 	
 	public void setBlockInterpolation(boolean b) {
-		no_interpolation = !b;
+		interpolation = b;
 	}
 	
 	@Override
 	public void beforeStart() {
 		t = new RotationTransaction(super.getDisplay());
-		if (no_interpolation && !super.getDisplay().getPlugin().isLegacy()) {
+		if (!interpolation && !super.getDisplay().getPlugin().isLegacy()) {
 			for (DexBlock db : super.getDisplay().getBlocks()) {
 				db.getEntity().setTeleportDuration(0);
 			}
@@ -49,7 +49,7 @@ public class RotationAnimation extends Animation {
 	
 	@Override
 	public void beforeFinish() {
-		if (no_interpolation && !super.getDisplay().getPlugin().isLegacy()) {
+		if (!interpolation && !super.getDisplay().getPlugin().isLegacy()) {
 			for (DexBlock db : super.getDisplay().getBlocks()) {
 				db.getEntity().setTeleportDuration(DexBlock.TELEPORT_DURATION);
 			}

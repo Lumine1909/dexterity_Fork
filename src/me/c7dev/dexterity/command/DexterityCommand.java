@@ -28,8 +28,8 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 	private Dexterity plugin;
 	private String cc, cc2;
 	private CommandHandler handler;
-	private HashMap<UUID, Long> cmd_delay = new HashMap<>();
-	private long cmd_delay_ms;
+	private HashMap<UUID, Long> cmdDelay = new HashMap<>();
+	private long cmdDelayMs;
 	
 	private String[] commands = {
 		"align", "axis", "clone", "command", "consolidate", "convert", "deconvert", "deselect", "glow", "highlight", "info", "item", "list", "mask", 
@@ -44,7 +44,7 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		cc = plugin.getChatColor();
 		cc2 = plugin.getChatColor2();
 		plugin.getCommand("dex").setExecutor(this);
-		cmd_delay_ms = (long) Math.max(plugin.getConfig().getDouble("command-cooldown-seconds", 0.5) * 1000, 0);
+		cmdDelayMs = (long) Math.max(plugin.getConfig().getDouble("command-cooldown-seconds", 0.5) * 1000, 0);
 		
 		handler = new CommandHandler(plugin);
 		
@@ -56,20 +56,20 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 	
 	public boolean cmdDelay(Player p) {
 		UUID u = p.getUniqueId();
-		double since_last = System.currentTimeMillis() - cmd_delay.getOrDefault(u, 0l);
-		if (since_last < cmd_delay_ms) {
-			int rem = (int) Math.ceil((cmd_delay_ms - since_last)/1000.0);
+		double since_last = System.currentTimeMillis() - cmdDelay.getOrDefault(u, 0l);
+		if (since_last < cmdDelayMs) {
+			int rem = (int) Math.ceil((cmdDelayMs - since_last)/1000.0);
 			p.sendMessage(plugin.getConfigString("command-cooldown").replaceAll("\\Q%remaining%\\E", "" + rem));
 			return true;
 		}
-		final long newdelay = System.currentTimeMillis() + cmd_delay_ms;
-		cmd_delay.put(u, newdelay);
+		final long newdelay = System.currentTimeMillis() + cmdDelayMs;
+		cmdDelay.put(u, newdelay);
 		new BukkitRunnable() {
 			@Override
 			public void run() {
-				if (cmd_delay.getOrDefault(u, 0l) == newdelay) cmd_delay.remove(u);
+				if (cmdDelay.getOrDefault(u, 0l) == newdelay) cmdDelay.remove(u);
 			}
-		}.runTaskLater(plugin, (int) (cmd_delay_ms*0.02));
+		}.runTaskLater(plugin, (int) (cmdDelayMs*0.02));
 		return false;
 	}
 	

@@ -60,7 +60,7 @@ public class CommandHandler {
 	
 	private Dexterity plugin;
 	private DexterityAPI api;
-	private String noperm, cc, cc2, usage_format, selected_str, loclabel_prefix;
+	private String noperm, cc, cc2, usageFormat, selectedStr, loclabelPrefix;
 	
 	public CommandHandler(Dexterity plugin) {
 		this.plugin = plugin;
@@ -69,9 +69,9 @@ public class CommandHandler {
 		cc2 = plugin.getChatColor2();
 		api = plugin.api();
 		noperm = plugin.getConfigString("no-permission");
-		usage_format = plugin.getConfigString("usage-format");
-		selected_str = plugin.getConfigString("selected");
-		loclabel_prefix = plugin.getConfigString("loclabel-prefix", "selection at");
+		usageFormat = plugin.getConfigString("usage-format");
+		selectedStr = plugin.getConfigString("selected");
+		loclabelPrefix = plugin.getConfigString("loclabel-prefix", "selection at");
 	}
 	
 	public boolean withPermission(Player p, String perm) {
@@ -144,7 +144,7 @@ public class CommandHandler {
 	
 	public String getUsage(String command) {
 		String usage = plugin.getConfigString(command + "-usage");
-		return usage_format.replaceAll("\\Q%usage%\\E", usage);
+		return usageFormat.replaceAll("\\Q%usage%\\E", usage);
 	}
 	
 	public String getConfigString(String dir, DexSession session) {
@@ -161,8 +161,8 @@ public class CommandHandler {
 			s = s.replaceAll("\\Q%label%\\E", label).replaceAll("\\Q%loclabel%\\E", label); //regex substr selector isn't working, idk
 		} 
 		else {
-			s = s.replaceAll("\\Q%label%\\E", selected_str);
-			if (session != null && session.getSelected() != null) s = s.replaceAll("\\Q%loclabel%", loclabel_prefix + " " + cc2 + DexUtils.locationString(session.getSelected().getCenter(), 0) + cc);
+			s = s.replaceAll("\\Q%label%\\E", selectedStr);
+			if (session != null && session.getSelected() != null) s = s.replaceAll("\\Q%loclabel%", loclabelPrefix + " " + cc2 + DexUtils.locationString(session.getSelected().getCenter(), 0) + cc);
 			else s = s.replaceAll("\\Q%loclabel%\\E", "");
 		}
 		return s;
@@ -240,16 +240,16 @@ public class CommandHandler {
 			return;
 		}
 		double radius = attrs_d.getOrDefault("radius", attrs_d.get("r"));
-		double min_scale = attrs_d.getOrDefault("min_scale", Double.MIN_VALUE), max_scale = attrs_d.getOrDefault("max_scale", Double.MAX_VALUE);
+		double minScale = attrs_d.getOrDefault("min_scale", Double.MIN_VALUE), maxScale = attrs_d.getOrDefault("max_scale", Double.MAX_VALUE);
 		
 		List<Entity> entities = ct.getPlayer().getNearbyEntities(radius, radius, radius);
 		for (Entity e : entities) {
 			if (!(e instanceof BlockDisplay)) continue;
 			BlockDisplay bd = (BlockDisplay) e;
 			Vector3f scale = bd.getTransformation().getScale();
-			if (scale.x < min_scale || scale.x > max_scale
-					|| scale.y < min_scale || scale.y > max_scale 
-					|| scale.z < min_scale || scale.z > max_scale) continue;
+			if (scale.x < minScale || scale.x > maxScale
+					|| scale.y < minScale || scale.y > maxScale 
+					|| scale.z < minScale || scale.z > maxScale) continue;
 			e.remove();
 		}
 	}
@@ -396,10 +396,10 @@ public class CommandHandler {
 					z = Math.abs(attrs_d.getOrDefault("z", attrs_d.getOrDefault("roll", s)));
 			
 			if (set_scale) {
-				Vector curr_scale = d.getScale();
-				if (x == 0) x = curr_scale.getX();
-				if (y == 0) y = curr_scale.getY();
-				if (z == 0) z = curr_scale.getZ();
+				Vector currScale = d.getScale();
+				if (x == 0) x = currScale.getX();
+				if (y == 0) y = currScale.getY();
+				if (z == 0) z = currScale.getZ();
 				
 				if (x == 0 || y == 0 || z == 0) {
 					p.sendMessage(plugin.getConfigString("must-send-number"));
@@ -1072,27 +1072,27 @@ public class CommandHandler {
 		HashMap<String, Double> attrs_d = ct.getDoubleAttrs();
 		List<String> defs_n = DexUtils.getDefaultAttributesWithFlags(args);
 		
-		plan.yaw_deg = attrs_d.getOrDefault("yaw", Double.MAX_VALUE);
-		plan.pitch_deg = attrs_d.getOrDefault("pitch", Double.MAX_VALUE);
-		plan.roll_deg = attrs_d.getOrDefault("roll", Double.MAX_VALUE);
-		plan.y_deg = attrs_d.getOrDefault("y", Double.MAX_VALUE);
-		plan.x_deg = attrs_d.getOrDefault("x", Double.MAX_VALUE);
-		plan.z_deg = attrs_d.getOrDefault("z", Double.MAX_VALUE);
+		plan.yawDeg = attrs_d.getOrDefault("yaw", Double.MAX_VALUE);
+		plan.pitchDeg = attrs_d.getOrDefault("pitch", Double.MAX_VALUE);
+		plan.rollDeg = attrs_d.getOrDefault("roll", Double.MAX_VALUE);
+		plan.yDeg = attrs_d.getOrDefault("y", Double.MAX_VALUE);
+		plan.xDeg = attrs_d.getOrDefault("x", Double.MAX_VALUE);
+		plan.zDeg = attrs_d.getOrDefault("z", Double.MAX_VALUE);
 		
 		try {
 			switch(Math.min(ct.getDefaultArgs().size(), 6)) {
 			case 6:
-				if (plan.z_deg == Double.MAX_VALUE) plan.z_deg = Double.parseDouble(defs_n.get(5));
+				if (plan.zDeg == Double.MAX_VALUE) plan.zDeg = Double.parseDouble(defs_n.get(5));
 			case 5:
-				if (plan.x_deg == Double.MAX_VALUE) plan.x_deg = Double.parseDouble(defs_n.get(4));
+				if (plan.xDeg == Double.MAX_VALUE) plan.xDeg = Double.parseDouble(defs_n.get(4));
 			case 4: 
-				if (plan.yaw_deg == Double.MAX_VALUE) plan.yaw_deg = Double.parseDouble(defs_n.get(3));
+				if (plan.yawDeg == Double.MAX_VALUE) plan.yawDeg = Double.parseDouble(defs_n.get(3));
 			case 3: 
-				if (plan.roll_deg == Double.MAX_VALUE) plan.roll_deg = Double.parseDouble(defs_n.get(2));
+				if (plan.rollDeg == Double.MAX_VALUE) plan.rollDeg = Double.parseDouble(defs_n.get(2));
 			case 2: 
-				if (plan.pitch_deg == Double.MAX_VALUE) plan.pitch_deg = Double.parseDouble(defs_n.get(1));
+				if (plan.pitchDeg == Double.MAX_VALUE) plan.pitchDeg = Double.parseDouble(defs_n.get(1));
 			case 1: 
-				if (plan.y_deg == Double.MAX_VALUE) plan.y_deg = Double.parseDouble(defs_n.get(0));
+				if (plan.yDeg == Double.MAX_VALUE) plan.yDeg = Double.parseDouble(defs_n.get(0));
 			default:
 			}
 		} catch (Exception ex) {
@@ -1100,30 +1100,30 @@ public class CommandHandler {
 			return;
 		}
 		
-		if (plan.yaw_deg == Double.MAX_VALUE) {
-			plan.set_yaw = false;
-			plan.yaw_deg = 0;
-		} else plan.set_yaw = set;
-		if (plan.pitch_deg == Double.MAX_VALUE) {
-			plan.set_pitch = false;
-			plan.pitch_deg = 0;
-		} else plan.set_pitch = set;
-		if (plan.roll_deg == Double.MAX_VALUE) {
-			plan.set_roll = false;
-			plan.roll_deg = 0;
-		} else plan.set_roll = set;
-		if (plan.y_deg == Double.MAX_VALUE) {
-			plan.set_y = false;
-			plan.y_deg = 0;
-		} else plan.set_y = set;
-		if (plan.x_deg == Double.MAX_VALUE) {
-			plan.set_x = false;
-			plan.x_deg = 0;
-		} else plan.set_x = set;
-		if (plan.z_deg == Double.MAX_VALUE) {
-			plan.set_z = false;
-			plan.z_deg = 0;
-		} else plan.set_z = set;
+		if (plan.yawDeg == Double.MAX_VALUE) {
+			plan.setYaw = false;
+			plan.yawDeg = 0;
+		} else plan.setYaw = set;
+		if (plan.pitchDeg == Double.MAX_VALUE) {
+			plan.setPitch = false;
+			plan.pitchDeg = 0;
+		} else plan.setPitch = set;
+		if (plan.rollDeg == Double.MAX_VALUE) {
+			plan.setRoll = false;
+			plan.rollDeg = 0;
+		} else plan.setRoll = set;
+		if (plan.yDeg == Double.MAX_VALUE) {
+			plan.setY = false;
+			plan.yDeg = 0;
+		} else plan.setY = set;
+		if (plan.xDeg == Double.MAX_VALUE) {
+			plan.setX = false;
+			plan.xDeg = 0;
+		} else plan.setX = set;
+		if (plan.zDeg == Double.MAX_VALUE) {
+			plan.setZ = false;
+			plan.zDeg = 0;
+		} else plan.setZ = set;
 								
 		RotationTransaction t = new RotationTransaction(d);
 		d.getRotationManager(true).setTransaction(t);

@@ -56,19 +56,19 @@ public class DexSession {
 	private Location l1, l2;
 	private DexterityDisplay selected, secondary;
 	private Dexterity plugin;
-	private Vector3f editing_scale;
-	private Vector following, l1_scale_offset, l2_scale_offset;
+	private Vector3f editingScale;
+	private Vector following, l1ScaleOffset, l2ScaleOffset;
 	private EditType editType;
 	private Transaction editTransaction;
-	private Location orig_loc;
+	private Location origLoc;
 	private double volume = 0;
 	private LinkedList<Transaction> toUndo = new LinkedList<>(), toRedo = new LinkedList<>(); //push/pop from first element
-	private BuildTransaction t_build;
+	private BuildTransaction buildTrans;
 	private Mask mask;
-	private boolean cancel_physics = false, sent_click_msg = false;
-	private BlockDisplay[] axis_x, axis_y, axis_z;
-	private AxisType showing_axis = null;
-	private BukkitRunnable actionbar_runnable;
+	private boolean cancelPhysics = false, sentClickMsg = false;
+	private BlockDisplay[] axisX, axisY, axisZ;
+	private AxisType showingAxis = null;
+	private BukkitRunnable actionbarRunnable;
 	
 	/**
 	 * Initializes a new session for a player
@@ -87,11 +87,11 @@ public class DexSession {
 			if (r != null) {
 				if (r.getMinimumPoint() != null) {
 					l1 = DexUtils.location(p.getWorld(), r.getMinimumPoint());
-					l1_scale_offset = new Vector(0, 0, 0);
+					l1ScaleOffset = new Vector(0, 0, 0);
 				}
 				if (r.getMaximumPoint() != null) {
 					l2 = DexUtils.location(p.getWorld(), r.getMaximumPoint());
-					l2_scale_offset = new Vector(1, 1, 1);
+					l2ScaleOffset = new Vector(1, 1, 1);
 				}
 				selectFromLocations();
 			}
@@ -114,10 +114,10 @@ public class DexSession {
 	}
 	
 	public Vector3f getEditingScale() {
-		return editing_scale;
+		return editingScale;
 	}
 	public void setEditingScale(Vector3f scale) {
-		editing_scale = scale;
+		editingScale = scale;
 	}
 	
 	public Player getPlayer() {
@@ -141,7 +141,7 @@ public class DexSession {
 	 * @return true if block physics events should be cancelled
 	 */
 	public boolean isCancellingPhysics() {
-		return (hasLocationsSet() && cancel_physics);
+		return (hasLocationsSet() && cancelPhysics);
 	}
 	
 	/**
@@ -149,7 +149,7 @@ public class DexSession {
 	 * @param b
 	 */
 	public void setCancelPhysics(boolean b) {
-		cancel_physics = b;
+		cancelPhysics = b;
 	}
 	
 	/**
@@ -166,19 +166,19 @@ public class DexSession {
 			if (event.isCancelled()) return;
 
 			selected = null;
-			sent_click_msg = false;
+			sentClickMsg = false;
 			updateAxisDisplays();
 			return;
 		}
 		
 		//check edit lock
-		UUID editing_lock = null;
-		if (selected != null && o != null) editing_lock = o.getEditingLock();
-		if (editing_lock != null) {
-			Player editor = Bukkit.getPlayer(editing_lock);
+		UUID editingLock = null;
+		if (selected != null && o != null) editingLock = o.getEditingLock();
+		if (editingLock != null) {
+			Player editor = Bukkit.getPlayer(editingLock);
 			if (editor == null) o.setEditingLock(null);
 			else {
-				if (editing_lock.equals(p.getUniqueId())) p.sendMessage(plugin.getConfigString("must-finish-edit"));
+				if (editingLock.equals(p.getUniqueId())) p.sendMessage(plugin.getConfigString("must-finish-edit"));
 				else p.sendMessage(plugin.getConfigString("cannot-select-with-edit").replaceAll("\\Q%editor%\\E", editor.getName()));
 				return;
 			}
@@ -194,7 +194,7 @@ public class DexSession {
 		if (event.isCancelled()) return;
 		
 		selected = o;
-		sent_click_msg = false;
+		sentClickMsg = false;
 		updateAxisDisplays();
 		if (msg && o.getLabel() != null && p.isOnline()) {
 			p.sendMessage(plugin.getConfigString("selected-success").replaceAll("\\Q%label%\\E", o.getLabel()));
@@ -243,25 +243,25 @@ public class DexSession {
 	 */
 	public void pushTransaction(Transaction t) {
 		if (!t.isPossible() || t instanceof RemoveTransaction) {
-			t_build = null;
+			buildTrans = null;
 			toUndo.clear();
 		}
 		toRedo.clear();
 		TransactionCompletionEvent e2 = new TransactionCompletionEvent(this, t);
 		
-		if (t_build != null) {
-			if (t_build.size() > 0) {
-				t_build.commit();
-				toUndo.addFirst(t_build);
+		if (buildTrans != null) {
+			if (buildTrans.size() > 0) {
+				buildTrans.commit();
+				toUndo.addFirst(buildTrans);
 				
-				TransactionCompletionEvent e1 = new TransactionCompletionEvent(this, t_build);
+				TransactionCompletionEvent e1 = new TransactionCompletionEvent(this, buildTrans);
 				Bukkit.getPluginManager().callEvent(e1);
 			}
-			if (t != t_build) {
+			if (t != buildTrans) {
 				toUndo.addFirst(t);
 				Bukkit.getPluginManager().callEvent(e2);
 			}
-			t_build = null;
+			buildTrans = null;
 		}
 		else {
 			toUndo.addFirst(t);
@@ -277,15 +277,15 @@ public class DexSession {
 	 */
 	public void pushBlock(DexBlock db, boolean placing) {
 		if (db.getDexterityDisplay() == null) return;
-		if (t_build == null) t_build = new BuildTransaction(db.getDexterityDisplay());
-		else if (!db.getDexterityDisplay().getUniqueId().equals(t_build.getDisplayUniqueId())) {
-			t_build.commit();
-			pushTransaction(t_build);
-			t_build = new BuildTransaction(db.getDexterityDisplay());
+		if (buildTrans == null) buildTrans = new BuildTransaction(db.getDexterityDisplay());
+		else if (!db.getDexterityDisplay().getUniqueId().equals(buildTrans.getDisplayUniqueId())) {
+			buildTrans.commit();
+			pushTransaction(buildTrans);
+			buildTrans = new BuildTransaction(db.getDexterityDisplay());
 		}
 		
-		if (placing) t_build.addBlock(db);
-		else t_build.removeBlock(db);
+		if (placing) buildTrans.addBlock(db);
+		else buildTrans.removeBlock(db);
 	}
 		
 	/**
@@ -337,10 +337,10 @@ public class DexSession {
 	}
 	
 	private void executeUndo(int count) {
-		if (t_build != null) {
-			t_build.commit();
-			pushTransaction(t_build);
-			t_build = null;
+		if (buildTrans != null) {
+			buildTrans.commit();
+			pushTransaction(buildTrans);
+			buildTrans = null;
 		}
 		
 		if (toUndo.size() == 0) {
@@ -430,7 +430,7 @@ public class DexSession {
 				setSelected(d, false);
 			}
 		} else selected.setEditingLock(p.getUniqueId());
-		orig_loc = d.getCenter();
+		origLoc = d.getCenter();
 	}
 	
 	/**
@@ -444,9 +444,9 @@ public class DexSession {
 			selected.setEditingLock(null);
 			secondary = null;
 		}
-		if (editType == EditType.TRANSLATE && orig_loc != null) {
-			if (secondary != null) secondary.teleport(orig_loc);
-			else selected.teleport(orig_loc);
+		if (editType == EditType.TRANSLATE && origLoc != null) {
+			if (secondary != null) secondary.teleport(origLoc);
+			else selected.teleport(origLoc);
 		}
 		editTransaction = null;
 		finishEdit();
@@ -506,8 +506,8 @@ public class DexSession {
 	 * Simple function to send the default click message for a saved display
 	 */
 	public void clickMsg() {
-		if (sent_click_msg) return;
-		sent_click_msg = true;
+		if (sentClickMsg) return;
+		sentClickMsg = true;
 		p.sendMessage(plugin.getConfigString("saved-click-default"));
 	}
 	
@@ -551,58 +551,58 @@ public class DexSession {
 	/**
 	 * Sets the first or second location to a block
 	 * @param loc
-	 * @param is_l1 true if setting the first location
+	 * @param isL1 true if setting the first location
 	 */
-	public void setLocation(Location loc, boolean is_l1) {
-		setLocation(loc, is_l1, true);
+	public void setLocation(Location loc, boolean isL1) {
+		setLocation(loc, isL1, true);
 	}
 	
 	/**
 	 * Sets the first or second location to a block
 	 * @param loc
-	 * @param is_l1 true if setting the first location
-	 * @param msg true if player should be notified in chat
+	 * @param isL1 true if setting the first location
+	 * @param verbose true if player should be notified in chat
 	 */
-	public void setLocation(Location loc, boolean is_l1, boolean msg) {
-		setContinuousLocation(DexUtils.blockLoc(loc), is_l1, is_l1 ? new Vector(0, 0, 0) : new Vector(1, 1, 1), msg);
+	public void setLocation(Location loc, boolean isL1, boolean verbose) {
+		setContinuousLocation(DexUtils.blockLoc(loc), isL1, isL1 ? new Vector(0, 0, 0) : new Vector(1, 1, 1), verbose);
 		if (hasLocationsSet()) volume = DexUtils.getBlockVolume(l1, l2);
 	}
 	
 	/**
 	 * Precisely sets the first or second location
 	 * @param loc
-	 * @param is_l1 true if setting the first location
-	 * @param scale_offset The offset added to the minimum or maximum coordinate once both locations are set
-	 * @param msg true if player should be notified in chat
+	 * @param isL1 true if setting the first location
+	 * @param scaleOffset The offset added to the minimum or maximum coordinate once both locations are set
+	 * @param verbose true if player should be notified in chat
 	 */
-	public void setContinuousLocation(Location loc, boolean is_l1, Vector scale_offset, boolean msg) {
+	public void setContinuousLocation(Location loc, boolean isL1, Vector scaleOffset, boolean verbose) {
 		
 //		if (scale == null) DexUtils.blockLoc(loc);
 //		else scale.multiply(0.5);
 
 		
-		if (is_l1) {
+		if (isL1) {
 			l1 = loc;
-			l1_scale_offset = scale_offset.clone().multiply(0.5);
+			l1ScaleOffset = scaleOffset.clone().multiply(0.5);
 		}
 		else {
 			l2 = loc;
-			l2_scale_offset = scale_offset.clone().multiply(0.5);
+			l2ScaleOffset = scaleOffset.clone().multiply(0.5);
 		}
 		
 		selectFromLocations();
 		
-		if (msg) p.sendMessage(plugin.getConfigString("set-success").replaceAll("\\Q%number%\\E", is_l1 ? "1" : "2").replaceAll("\\Q%location%\\E", DexUtils.locationString(loc, 0)));
+		if (verbose) p.sendMessage(plugin.getConfigString("set-success").replaceAll("\\Q%number%\\E", isL1 ? "1" : "2").replaceAll("\\Q%location%\\E", DexUtils.locationString(loc, 0)));
 	}
 
 	private void selectFromLocations() {
 		if (hasLocationsSet() && editType == null) {
-			volume = DexUtils.getVolume(l1.clone().add(l1_scale_offset), l2.clone().add(l2_scale_offset));
+			volume = DexUtils.getVolume(l1.clone().add(l1ScaleOffset), l2.clone().add(l2ScaleOffset));
 			if (volume > Math.min(plugin.getMaxVolume(), getPermittedVolume())) {
 				setSelected(null, false);
 				return;
 			}
-			DexterityDisplay d = plugin.api().selectFromLocations(l1, l2, mask, l1_scale_offset, l2_scale_offset);
+			DexterityDisplay d = plugin.api().selectFromLocations(l1, l2, mask, l1ScaleOffset, l2ScaleOffset);
 			if (d == null) setSelected(null, false);
 			else {
 				SessionSelectionChangeEvent event = new SessionSelectionChangeEvent(this, selected, d);
@@ -617,37 +617,37 @@ public class DexSession {
 	}
 	
 	public void setShowingAxes(AxisType a) {
-		showing_axis = a;
+		showingAxis = a;
 		updateAxisDisplays();
 	}
 	
 	public boolean isShowingAxes() {
-		return showing_axis != null;
+		return showingAxis != null;
 	}
 	
 	public AxisType getShowingAxisType() {
-		return showing_axis;
+		return showingAxis;
 	}
 	
 	public void updateAxisDisplays() {
 		removeAxes();
-		if (selected == null || showing_axis == null) return;
+		if (selected == null || showingAxis == null) return;
 		
 		DexRotation rot = selected.getRotationManager(true);
 		DexterityAPI api = plugin.api();
 		Location c = selected.getCenter();
 		
-		switch (showing_axis) {
+		switch (showingAxis) {
 		case SCALE:
 			Vector scale = selected.getScale();
-			axis_x = api.markerVector(c, c.clone().add(rot.getXAxis().multiply(scale.getX())), Material.RED_CONCRETE, Color.RED, -1);
-			axis_y = api.markerVector(c, c.clone().add(rot.getYAxis().multiply(scale.getY())), Material.LIME_CONCRETE, Color.LIME, -1);
-			axis_z = api.markerVector(c, c.clone().add(rot.getZAxis().multiply(scale.getZ())), Material.BLUE_CONCRETE, Color.BLUE, -1);
+			axisX = api.markerVector(c, c.clone().add(rot.getXAxis().multiply(scale.getX())), Material.RED_CONCRETE, Color.RED, -1);
+			axisY = api.markerVector(c, c.clone().add(rot.getYAxis().multiply(scale.getY())), Material.LIME_CONCRETE, Color.LIME, -1);
+			axisZ = api.markerVector(c, c.clone().add(rot.getZAxis().multiply(scale.getZ())), Material.BLUE_CONCRETE, Color.BLUE, -1);
 			break;
 		case ROTATE:
-			axis_x = api.markerVector(c, c.clone().add(rot.getXAxis()), Material.RED_CONCRETE, Color.RED, -1);
-			axis_y = api.markerVector(c, c.clone().add(rot.getYAxis()), Material.LIME_CONCRETE, Color.LIME, -1);
-			axis_z = api.markerVector(c, c.clone().add(rot.getZAxis()), Material.BLUE_CONCRETE, Color.BLUE, -1);
+			axisX = api.markerVector(c, c.clone().add(rot.getXAxis()), Material.RED_CONCRETE, Color.RED, -1);
+			axisY = api.markerVector(c, c.clone().add(rot.getYAxis()), Material.LIME_CONCRETE, Color.LIME, -1);
+			axisZ = api.markerVector(c, c.clone().add(rot.getZAxis()), Material.BLUE_CONCRETE, Color.BLUE, -1);
 			break;
 		default:
 		}
@@ -655,26 +655,26 @@ public class DexSession {
 	
 	public void removeAxes() {
 		DexterityAPI api = plugin.api();
-		if (axis_x != null) api.removeMarker(axis_x);
-		if (axis_y != null) api.removeMarker(axis_y);
-		if (axis_z != null) api.removeMarker(axis_z);
-		axis_x = null;
-		axis_y = null;
-		axis_z = null;
+		if (axisX != null) api.removeMarker(axisX);
+		if (axisY != null) api.removeMarker(axisY);
+		if (axisZ != null) api.removeMarker(axisZ);
+		axisX = null;
+		axisY = null;
+		axisZ = null;
 	}
 	
-	private void highlightSelected(DexterityDisplay new_disp) {
+	private void highlightSelected(DexterityDisplay newDisp) {
 		if (selected != null) plugin.api().unTempHighlight(selected);
-		plugin.api().tempHighlight(new_disp, 30);
+		plugin.api().tempHighlight(newDisp, 30);
 	}
 	
 	public void setMask(Mask mask) {
 		this.mask = mask;
 		selectFromLocations();
 		
-		if (actionbar_runnable != null && !actionbar_runnable.isCancelled()) {
-			actionbar_runnable.cancel();
-			actionbar_runnable = null;
+		if (actionbarRunnable != null && !actionbarRunnable.isCancelled()) {
+			actionbarRunnable.cancel();
+			actionbarRunnable = null;
 			p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§b"));
 		}
 		
@@ -695,23 +695,23 @@ public class DexSession {
 				}
 			}
 			
-			String mask_num = (mask.isNegative() ? "(-) " : "") + mask.getBlocks().size();
-			String ab_msg = plugin.getConfigString("mask-enabled")
-					.replaceAll("\\Q%material_count%\\E", mask_num)
+			String maskNum = (mask.isNegative() ? "(-) " : "") + mask.getBlocks().size();
+			String abMsg = plugin.getConfigString("mask-enabled")
+					.replaceAll("\\Q%material_count%\\E", maskNum)
 					.replaceAll("\\Q(s)\\E", mask.getBlocks().size() == 1 ? "" : "s");
 			
-			if (ab_msg.length() > 0) {
-				actionbar_runnable = new BukkitRunnable() {
+			if (abMsg.length() > 0) {
+				actionbarRunnable = new BukkitRunnable() {
 					@Override
 					public void run() {
 						if (!p.isOnline()) {
 							this.cancel();
-							actionbar_runnable = null;
+							actionbarRunnable = null;
 						}
-						else p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ab_msg));
+						else p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(abMsg));
 					}
 				};
-				actionbar_runnable.runTaskTimer(plugin, 0, 20l);
+				actionbarRunnable.runTaskTimer(plugin, 0, 20l);
 			}
 		}
 	}

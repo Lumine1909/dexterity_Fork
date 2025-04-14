@@ -176,7 +176,7 @@ public class DexBlock {
 		rot.rotateY(-Math.toRadians(entity.getLocation().getYaw()));
 		rot.rotateX(Math.toRadians(entity.getLocation().getPitch()));
 		
-		Location visible_center = entity.getLocation()
+		Location visibleCenter = entity.getLocation()
 				.add(DexUtils.vector(rot.transform(entity.getTransformation().getTranslation())))
 				.add(DexUtils.vector(rot.transform(q.transform(entity.getTransformation().getScale().mul(0.5f)))));
 		AxisPair ap = new AxisPair();
@@ -196,7 +196,7 @@ public class DexBlock {
 		
 		roll = ro.getRoll();
 		this.trans = trans;
-		entity.teleport(visible_center);
+		entity.teleport(visibleCenter);
 		entity.setTransformation(trans.build());
 		entity.setRotation((float) pyr.getY(), (float) pyr.getX());
 		entity.setInterpolationDelay(TELEPORT_DURATION);

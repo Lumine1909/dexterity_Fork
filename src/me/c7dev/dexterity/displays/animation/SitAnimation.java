@@ -14,11 +14,11 @@ import me.c7dev.dexterity.displays.DexterityDisplay;
 
 public class SitAnimation extends Animation implements RideableAnimation, Listener {
 	
-	private final double seat_y_offset = -1.5;
+	private final double seatOffsetY = -1.5;
 	private ArmorStand mount;
 	private Player p;
-	private Vector seat_offset = new Vector(0, seat_y_offset, 0);
-	private boolean freeze_dismount_event = false;
+	private Vector seatOffset = new Vector(0, seatOffsetY, 0);
+	private boolean freezeDismountEvent = false;
 
 	public SitAnimation(DexterityDisplay display) {
 		super(display, 1);
@@ -26,7 +26,7 @@ public class SitAnimation extends Animation implements RideableAnimation, Listen
 	}
 	
 	private void spawnMount() {
-		mount = getDisplay().getPlugin().spawn(getDisplay().getCenter().add(seat_offset), ArmorStand.class, a -> {
+		mount = getDisplay().getPlugin().spawn(getDisplay().getCenter().add(seatOffset), ArmorStand.class, a -> {
 			a.setSilent(true);
 			a.setGravity(false);
 			a.setVisible(false);
@@ -65,19 +65,19 @@ public class SitAnimation extends Animation implements RideableAnimation, Listen
 	
 	public void setSeatOffset(Vector v) {
 		v = v.clone();
-		v.setY(v.getY() + seat_y_offset);
-		Vector diff = v.clone().subtract(seat_offset);
+		v.setY(v.getY() + seatOffsetY);
+		Vector diff = v.clone().subtract(seatOffset);
 		if (mount != null) mount.teleport(mount.getLocation().add(diff));
-		seat_offset = v;
+		seatOffset = v;
 	}
 	
 	public Vector getSeatOffset() {
-		return seat_offset.clone().subtract(new Vector(0, seat_y_offset, 0));
+		return seatOffset.clone().subtract(new Vector(0, seatOffsetY, 0));
 	}
 	
 	@EventHandler
 	public void onDismountEvent(EntityDismountEvent e) {
-		if (p == null || mount == null || freeze_dismount_event || !e.getEntity().getUniqueId().equals(p.getUniqueId())) return;
+		if (p == null || mount == null || freezeDismountEvent || !e.getEntity().getUniqueId().equals(p.getUniqueId())) return;
 		dismount();
 	}
 	
@@ -86,11 +86,11 @@ public class SitAnimation extends Animation implements RideableAnimation, Listen
 		if (!e.getDisplay().equals(super.getDisplay())) return;
 		refreshMountedPlayer();
 		if (mount == null) return;
-		freeze_dismount_event = true;
+		freezeDismountEvent = true;
 		if (p != null) mount.removePassenger(p);
-		mount.teleport(e.getTo().add(seat_offset));
+		mount.teleport(e.getTo().add(seatOffset));
 		if (p != null) mount.addPassenger(p);
-		freeze_dismount_event = false;
+		freezeDismountEvent = false;
 	}
 	
 	@Override
