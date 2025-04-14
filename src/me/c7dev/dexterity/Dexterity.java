@@ -416,6 +416,7 @@ public class Dexterity extends JavaPlugin {
 		//display drop item
 		String itemSchem = afile.getString("item-schem-name");
 		if (itemSchem != null) disp.setDropItem(afile.getItemStack("item"), itemSchem);
+		if (afile.getBoolean("unlisted", false)) disp.setListed(false);
 		
 		//display owners
 		List<String> ownerUUIDs = afile.getStringList("owners");
@@ -487,6 +488,7 @@ public class Dexterity extends JavaPlugin {
 		SitAnimation seat = (SitAnimation) disp.getAnimation(SitAnimation.class);
 		if (seat != null) afile.set("seat-offset", seat.getSeatOffset().getY());
 		
+		//owners list
 		OfflinePlayer[] owners = disp.getOwners();
 		if (owners.length > 0) {
 			List<String> uuids = new ArrayList<>();
@@ -518,6 +520,7 @@ public class Dexterity extends JavaPlugin {
 			afile.set("item-schem-name", disp.getDropItemSchematicName());
 			afile.set("item", item);
 		}
+		if (!disp.isListed()) afile.set("unlisted", true);
 		
 		//save block uuids
 		List<String> uuids = new ArrayList<>();

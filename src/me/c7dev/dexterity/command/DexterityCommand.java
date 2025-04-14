@@ -386,14 +386,10 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 					ret.add("-right_only");
 					ret.add("-player");
 				}
-				else if (argsr.length == 4) {
-					Player p = (Player) sender;
-					DexSession session = plugin.getEditSession(p.getUniqueId());
-					int len = 0;
-					if (session != null && session.getSelected() != null) len = session.getSelected().getCommandCount();
-					for (int i = 0; i < len; i++) ret.add("" + (i+1));
-				}
+				else if (argsr.length == 4) addCmdIDs(ret, sender);
 			}
+			else if (argsr[1].equalsIgnoreCase("remove")) addCmdIDs(ret, sender);
+			
 			return ret;
 		case "owner":
 			if (argsr.length == 1) return ret;
@@ -498,6 +494,15 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		}
 		
 		return ret;
+	}
+	
+	private void addCmdIDs(List<String> ret, CommandSender sender) {
+		if (!(sender instanceof Player)) return;
+		Player p = (Player) sender;
+		DexSession session = plugin.getEditSession(p.getUniqueId());
+		int len = 0;
+		if (session != null && session.getSelected() != null) len = session.getSelected().getCommandCount();
+		for (int i = 1; i <= len; i++) ret.add("" + i);
 	}
 
 }
