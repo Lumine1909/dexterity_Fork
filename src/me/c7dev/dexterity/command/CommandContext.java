@@ -1,5 +1,6 @@
 package me.c7dev.dexterity.command;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,27 +36,75 @@ public class CommandContext {
 	}
 	
 	public HashMap<String,Integer> getIntAttrs() {
-		if (attr == null) attr = DexUtils.getAttributes(args);
+		if (attr == null) {
+			attr = new HashMap<>();
+			for (String arg : args) {
+				String[] argsplit = arg.split("[=,:]");
+				if (argsplit.length > 0) {
+					attr.put(DexUtils.attrAlias(argsplit[0]), DexUtils.valueAlias(argsplit[argsplit.length-1]));
+				}
+			}
+		}
 		return attr;
 	}
 	
 	public HashMap<String, String> getStringAttrs(){
-		if (attrStr == null) attrStr = DexUtils.getAttributesStrings(args);
+		if (attrStr == null) {
+			attrStr = new HashMap<>();
+			for (String arg : args) {
+				String[] argsplit = arg.toLowerCase().split("[=,:]");
+				if (argsplit.length > 0) {
+					attrStr.put(DexUtils.attrAlias(argsplit[0]), argsplit[argsplit.length-1]);
+				}
+			}
+		}
 		return attrStr;
 	}
 	
 	public HashMap<String, Double> getDoubleAttrs(){
-		if (attrDoubles == null) attrDoubles = DexUtils.getAttributesDoubles(args);
+		if (attrDoubles == null) {
+			attrDoubles = new HashMap<>();
+			for (String arg : args) {
+				String[] argsplit = arg.split("[=,:]");
+				if (argsplit.length > 0) {
+					String alias = DexUtils.attrAlias(argsplit[0]);
+					try {
+						double d = Double.parseDouble(argsplit[argsplit.length-1]);
+						if (argsplit[0].equalsIgnoreCase("down") || argsplit[0].equalsIgnoreCase("west") || argsplit[0].equalsIgnoreCase("north")) d*=-1;
+						attrDoubles.put(alias, d);
+					} catch (Exception ex) {
+						try {
+							attrDoubles.put(alias, (double) DexUtils.valueAlias(argsplit[argsplit.length-1]));
+						} catch (Exception ex2) {
+							
+						}
+					}
+				}
+			}
+		}
 		return attrDoubles;
 	}
 	
 	public List<String> getFlags(){
-		if (flags == null) flags = DexUtils.getFlags(args);
+		if (flags == null) {
+			flags = new ArrayList<String>();
+			for (String arg : args) {
+				if (arg.startsWith("-")) flags.add(arg.toLowerCase().replaceFirst("-", ""));
+			}
+		}
 		return flags;
 	}
 	
 	public List<String> getDefaultArgs(){
-		if (defs == null) defs = DexUtils.getDefaultAttributes(args);
+		if (defs == null) {
+			defs = new ArrayList<>();
+			for (int i = 1; i < args.length; i++) {
+				String arg = args[i];
+				if (!arg.contains("=") && !arg.contains(":") && !arg.startsWith("-")) {
+					defs.add(arg.toLowerCase());
+				}
+			}
+		}
 		return defs;
 	}
 	

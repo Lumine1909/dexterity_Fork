@@ -89,7 +89,7 @@ public class DexTransformation {
 	 * @return
 	 */
 	public DexTransformation rescale(Vector s) {
-		scale = s;
+		scale = s.clone();
 		disp = s.clone().multiply(-0.5);
 		return this;
 	}

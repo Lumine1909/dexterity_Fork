@@ -35,7 +35,7 @@ public class BlockTransactionLine {
 	}
 	
 	public void refresh(Dexterity plugin) {
-		if (to == null || (db != null && db.getEntity().isDead())) db = plugin.getMappedDisplay(db.getUniqueId());
+		if (to == null || (db != null && !db.getEntity().isValid())) db = plugin.getMappedDisplay(db.getUniqueId());
 	}
 	
 	public UUID undo() {
@@ -43,7 +43,7 @@ public class BlockTransactionLine {
 		isUndone = true;
 		UUID ret = null;
 		
-		if (to == null || (db != null && db.getEntity().isDead())) {
+		if (to == null || (db != null && !db.getEntity().isValid())) {
 			db = new DexBlock(from);
 			ret = db.getUniqueId();
 		} else if (db != null) {
@@ -57,7 +57,7 @@ public class BlockTransactionLine {
 		isUndone = false;
 		
 		if (to != null) {
-			if (db.getEntity().isDead()) db = new DexBlock(to);
+			if (db.getEntity() == null || !db.getEntity().isValid()) db = new DexBlock(to);
 			else db.loadState(to);
 		} else db.remove(); //TODO test that dex display is set correctly on dexblock after undo/redo transactions
 		

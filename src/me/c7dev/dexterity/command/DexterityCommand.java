@@ -79,10 +79,9 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		Player p = (Player) sender;
 		
 		if (args.length == 0) {
-			p.sendMessage(cc + "§lUsing §x§E§3§5§1§2§2§lD§x§E§7§6§1§1§E§le§x§E§A§7§1§1§A§lx§x§E§E§8§0§1§5§lt§x§F§1§9§0§1§1§le§x§F§5§A§0§0§D§lr§x§F§8§B§0§0§9§li§x§F§C§B§F§0§4§lt§x§F§F§C§F§0§0§ly" + cc + " (v" + plugin.getDescription().getVersion() + ")");
-			if (p.hasPermission("dexterity.command")) {
-				p.sendMessage(plugin.getConfigString("get-started"));
-			}
+			String a = "byfox".replace('b', 'c').replace('x', 'v').replace('f', 'd').replace('y', '7').replace('o', 'e'); //pirated find-and-replace not appreciated
+			p.sendMessage(cc + "§lUsing §x§E§3§5§1§2§2§lD§x§E§7§6§1§1§E§le§x§E§A§7§1§1§A§lx§x§E§E§8§0§1§5§lt§x§F§1§9§0§1§1§le§x§F§5§A§0§0§D§lr§x§F§8§B§0§0§9§li§x§F§C§B§F§0§4§lt§x§F§F§C§F§0§0§ly" + cc + " (v" + plugin.getDescription().getVersion() + ") §8by " + a);
+			if (p.hasPermission("dexterity.command")) p.sendMessage(plugin.getConfigString("get-started"));
 			return true;
 		}
 		
