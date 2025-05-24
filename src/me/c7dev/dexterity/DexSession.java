@@ -438,11 +438,11 @@ public class DexSession {
 	 */
 	public void cancelEdit() {
 		if (selected == null) return;
-		if (selected != null && secondary != null) {
+		if (secondary != null) {
 			selected.remove(false);
 			selected = secondary;
-			selected.setEditingLock(null);
 			secondary = null;
+			selected.setEditingLock(null);
 		}
 		if (editType == EditType.TRANSLATE && origLoc != null) {
 			if (secondary != null) secondary.teleport(origLoc);
