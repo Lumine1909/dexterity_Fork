@@ -33,7 +33,7 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 	
 	private String[] commands = {
 		"align", "axis", "clone", "command", "consolidate", "convert", "deconvert", "deselect", "glow", "highlight", "info", "item", "list", "mask", 
-		"merge", "move", "name", "owner", "pos1", "recenter", "redo", "reload", "remove", "replace", "rotate", "scale", "schem", "seat", "select", 
+		"merge", "move", "owner", "pos1", "recenter", "redo", "reload", "remove", "replace", "rotate", "save", "scale", "schem", "seat", "select", 
 		"undo", "unsave", "tile", "wand"
 	};
 	private String[] descriptions = new String[commands.length];

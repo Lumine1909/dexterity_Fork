@@ -283,7 +283,7 @@ public class EventListeners implements Listener {
 		Location center = session.getSelected().getCenter();
 		if (loc.getX() == center.getX() && loc.getY() == center.getY() && loc.getZ() == center.getZ()) return;
 		
-		double cutoff = 0.01; //follow player
+		double cutoff = 0.005; //follow player
 		if (Math.abs(e.getTo().getX() - e.getFrom().getX()) > cutoff || Math.abs(e.getTo().getY() - e.getFrom().getY()) > cutoff || Math.abs(e.getTo().getZ() - e.getFrom().getZ()) > cutoff) {
 			session.getSelected().teleport(loc);
 		}
