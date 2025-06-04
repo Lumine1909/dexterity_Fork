@@ -43,10 +43,14 @@ import me.c7dev.dexterity.util.SavedBlockState;
 
 public class DexterityAPI {
 	
-	private Dexterity plugin;
+	private final Dexterity plugin;
 	private HashMap<UUID, Integer> pidMap = new HashMap<>();
 	private List<UUID> markerPoints = new ArrayList<>();
 	private int pid_ = Integer.MIN_VALUE + 1; //min val reserved for getOrDefault
+	private final HashMap<OrientationKey, RollOffset> rollOffsets = new HashMap<>();
+	private final HashMap<OrientationKey, Vector[]> axes = new HashMap<>();
+	private final Vector[][] basisVecsNoRot = getBasisVecs(new Matrix3d(1, 0, 0, 0, 1, 0, 0, 0, 1));
+	private final Vector eastUnit = new Vector(1, 0, 0), upUnit = new Vector(0, 1, 0), southUnit = new Vector(0, 0, 1);
 	
 	private BlockFace[] faces = {
 			BlockFace.UP,
@@ -66,6 +70,23 @@ public class DexterityAPI {
 	
 	public DexterityAPI(Dexterity plugin) {
 		this.plugin = plugin;
+		
+		long msDelete = 30*1000;
+		
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				List<OrientationKey> toRemove = new ArrayList<>();
+				long time = System.currentTimeMillis();
+				
+				for (OrientationKey key : rollOffsets.keySet()) if (time - key.getLastUsedTime() >= msDelete) toRemove.add(key);
+				for (OrientationKey key : toRemove) rollOffsets.remove(key);
+				toRemove.clear();
+				
+				for (OrientationKey key : axes.keySet()) if (time - key.getLastUsedTime() >= msDelete) toRemove.add(key);
+				for (OrientationKey key : toRemove) axes.remove(key);
+			}
+		}.runTaskTimer(plugin, 0, msDelete*20l/1000);
 	}
 	
 	/**
@@ -247,12 +268,6 @@ public class DexterityAPI {
 		double mindist = Double.MAX_VALUE;
 		ClickedBlockDisplay nearest = null;
 				
-		HashMap<OrientationKey, RollOffset> rollOffsets = new HashMap<>();
-		HashMap<OrientationKey, Vector[]> axes = new HashMap<>();
-				
-		Vector[][] basisVecsNoRot = getBasisVecs(new Matrix3d(1, 0, 0, 0, 1, 0, 0, 0, 1));
-		Vector eastUnit = new Vector(1, 0, 0), upUnit = new Vector(0, 1, 0), southUnit = new Vector(0, 0, 1);
-		
 		bdLoop: for (Entity entity : near) {
 			if (!(entity instanceof BlockDisplay) || markerPoints.contains(entity.getUniqueId())) continue;
 			BlockDisplay e = (BlockDisplay) entity;

@@ -302,6 +302,7 @@ public class DexUtils {
 		case END_PORTAL_FRAME: return new Vector(1, 13.0/16, 1);
 		case FLOWER_POT: return new Vector(0.375, 0.375, 0.357);
 		case CAKE: return new Vector(0.875, 0.5, 0.875);
+		case CHEST: return new Vector(0.875, 0.875, 0.875);
 		case RED_MUSHROOM: return new Vector(0.5, 7.0/16, 0.5);
 		case BROWN_MUSHROOM: return new Vector(0.5, 0.5, 0.5);
 		case LILY_OF_THE_VALLEY:

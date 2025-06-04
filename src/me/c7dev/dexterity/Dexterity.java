@@ -250,7 +250,7 @@ public class Dexterity extends JavaPlugin {
 		
 		//legacy name remap
 		switch (dir) {
-		case "save-description": 
+		case "label-description": 
 			dir = "name-description";
 			break;
 		}
@@ -265,7 +265,7 @@ public class Dexterity extends JavaPlugin {
 		if (s == null) { //string not found in lang file
 			//legacy name remap (config using new name)
 			switch (dir) {
-			case "name-description": return getConfigString("save-description");
+			case "name-description": return getConfigString("label-description");
 			}
 			
 			if (defaultLang != null && use != defaultLang) s = defaultLang.getString(dir);

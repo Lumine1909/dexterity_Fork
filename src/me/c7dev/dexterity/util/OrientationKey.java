@@ -9,6 +9,7 @@ public class OrientationKey {
 	
 	private Quaternionf q;
 	private double x, y;
+	private long lastUsed = System.currentTimeMillis();
 	
 	public static final double epsilon = 0.000001;
 	
@@ -18,12 +19,22 @@ public class OrientationKey {
 		this.y = pitch;
 	}
 	
+	public long getLastUsedTime() {
+		return lastUsed;
+	}
+	
+	public void use() {
+		lastUsed = System.currentTimeMillis();
+	}
+	
 	public Quaternionf getQuaternion() {
 		return q;
 	}
+	
 	public double getYaw() {
 		return x;
 	}
+	
 	public double getPitch() {
 		return y;
 	}
@@ -32,9 +43,14 @@ public class OrientationKey {
 	public boolean equals(Object obj) {
 		if (!(obj instanceof OrientationKey)) return false;
 		OrientationKey k = (OrientationKey) obj;
-		return Math.abs(k.getYaw() - x) < epsilon && Math.abs(k.getPitch() - y) < epsilon
+		boolean equals = Math.abs(k.getYaw() - x) < epsilon && Math.abs(k.getPitch() - y) < epsilon
 				&& Math.abs(k.getQuaternion().w - q.w) < epsilon && Math.abs(k.getQuaternion().z - q.z) < epsilon
-				&& Math.abs(k.getQuaternion().x - q.x) < epsilon && Math.abs(k.getQuaternion().y - q.y) < epsilon; 
+				&& Math.abs(k.getQuaternion().x - q.x) < epsilon && Math.abs(k.getQuaternion().y - q.y) < epsilon;
+		if (equals) {
+			k.use();
+			this.use();
+		}
+		return equals;
 	}
 	
 	public int hashCode() {
