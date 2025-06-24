@@ -1,5 +1,5 @@
 name: Dexterity
-version: 1.6.2a
+version: 1.6.3
 author: c7dev
 main: me.c7dev.dexterity.Dexterity
 api-version: 1.19
@@ -41,7 +41,7 @@ permissions:
       dexterity.command.list: true
       dexterity.command.merge: true
       dexterity.command.owner: true
-      dexterity.command.save: true
+      dexterity.command.label: true
       dexterity.command.recenter: true
       dexterity.command.remove: true
       dexterity.command.replace: true
@@ -81,8 +81,8 @@ permissions:
     description: Use /d merge
   dexterity.command.owner:
     description: Use /d owner
-  dexterity.command.save:
-    description: Use /d save, /d unsave
+  dexterity.command.label:
+    description: Use /d label, /d unsave
   dexterity.command.recenter:
     description: Use /d recenter
   dexterity.command.remove:

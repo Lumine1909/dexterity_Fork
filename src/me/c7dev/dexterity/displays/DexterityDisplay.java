@@ -981,11 +981,24 @@ public class DexterityDisplay {
 	 * @param toCenter If true, aligns based on the display's center, otherwise by its corner.
 	 */
 	public void align(boolean toCenter) {
+		align(toCenter, true, true, true);
+	}
+	
+	/**
+	 * Teleport the selection so that its corner or center aligns with the nearest whole block along a certain axis of movement
+	 * @param toCenter If true, aligns based on the display's center, otherwise by its corner.
+	 * @param x If x axis movement is allowed
+	 * @param y If y axis movement is allowed
+	 * @param z If z axis movement is allowed
+	 */
+	public void align(boolean toCenter, boolean x, boolean y, boolean z) {
+		if (!(x || y || z)) throw new IllegalArgumentException("Must align in at least one axis");
+		Vector diff;
 		if (toCenter) {
 			Vector locv = center.toVector();
 			Vector locvb = new Vector(Math.round(locv.getX()), Math.round(locv.getY()), Math.round(locv.getZ()));
-			Vector diff = locvb.clone().subtract(locv);
-			teleport(diff);
+			diff = locvb.clone().subtract(locv);
+//			teleport(diff);
 		} else {
 			DexBlock block = null;
 			double minx = 0, miny = 0, minz = 0;
@@ -998,12 +1011,17 @@ public class DexterityDisplay {
 					minz = loc.getZ();
 				}
 			}
-			if (block != null) {
-				Location loc = block.getLocation().add(block.getTransformation().getDisplacement());
-				Vector disp = loc.clone().subtract(DexUtils.blockLoc(loc.clone())).toVector();
-				teleport(center.clone().subtract(disp));
-			}
+			if (block == null) return;
+			Location loc = block.getLocation().add(block.getTransformation().getDisplacement());
+			diff = loc.clone().subtract(DexUtils.blockLoc(loc.clone())).toVector().multiply(-1); // = -disp
+//			teleport(center.clone().subtract(disp));
 		}
+		
+		if (!x) diff.setX(0);
+		if (!y) diff.setY(0);
+		if (!z) diff.setZ(0);
+		teleport(diff);
+		
 	}
 	
 	/**

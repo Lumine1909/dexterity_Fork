@@ -422,10 +422,6 @@ public class DexterityAPI {
 		return getPhysicalBlockLookingAtRaw(p, 0.01, 5); // same as getBlockLookingAt(p, 100);
 	}
 	
-//	private ClickedBlock getPhysicalBlockLookingAt(Player p, double percent_precision) {
-//		return getPhysicalBlockLookingAtRaw(p, Math.abs(1/percent_precision), 5);
-//	}
-	
 	/**
 	 * Calculates the precise placed block that the player is currently looking at with their cursor
 	 * 

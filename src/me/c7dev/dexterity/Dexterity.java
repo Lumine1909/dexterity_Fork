@@ -245,14 +245,20 @@ public class Dexterity extends JavaPlugin {
 	public String getAuthor() {
 		return api.getAuthor();
 	}
-
+	
 	public String getConfigString(String dir) {
+		return getConfigString(dir, false);
+	}
+
+	private String getConfigString(String dir, boolean legacy) {
 		
 		//legacy name remap
-		switch (dir) {
-		case "label-description": 
-			dir = "name-description";
-			break;
+		if (legacy) {
+			switch (dir) {
+			case "label-description": 
+				dir = "name-description";
+				break;
+			}
 		}
 		
 		FileConfiguration use = lang;
@@ -263,11 +269,7 @@ public class Dexterity extends JavaPlugin {
 
 		String s = use.getString(dir);
 		if (s == null) { //string not found in lang file
-			//legacy name remap (config using new name)
-			switch (dir) {
-			case "name-description": return getConfigString("label-description");
-			}
-			
+			if (!legacy) return getConfigString(dir, true);
 			if (defaultLang != null && use != defaultLang) s = defaultLang.getString(dir);
 			if (s == null) {
 				Bukkit.getLogger().warning("Could not get value from config: '" + dir + "'");

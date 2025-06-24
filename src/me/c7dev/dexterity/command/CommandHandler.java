@@ -82,13 +82,21 @@ public class CommandHandler {
 		}
 	}
 	
-	public DexterityDisplay getSelected(DexSession session, String perm) {
-		if (perm != null) {
-			if (!session.getPlayer().hasPermission("dexterity.command." + perm)) {
+	public DexterityDisplay getSelected(DexSession session, String... perms) {
+		if (perms.length > 0) {
+			boolean auth = false;
+			for (String perm : perms) {
+				if (session.getPlayer().hasPermission("dexterity.command." + perm)) {
+					auth = true;
+					break;
+				}
+			}
+			if (!auth) {
 				session.getPlayer().sendMessage(noperm);
 				return null;
 			}
 		}
+
 		DexterityDisplay d = session.getSelected();
 		if (d == null) {
 			session.getPlayer().sendMessage(plugin.getConfigString("must-select-display"));
@@ -348,10 +356,19 @@ public class CommandHandler {
 		DexterityDisplay d = getSelected(session, "move");
 		if (d == null) return;
 		
-		boolean to_center = ct.getFlags().contains("center");
+		boolean to_center = ct.getFlags().contains("center"), 
+				x = ct.getFlags().contains("x") || ct.getDefaultArgs().contains("x"),
+				y = ct.getFlags().contains("y") || ct.getDefaultArgs().contains("y"),
+				z = ct.getFlags().contains("z") || ct.getDefaultArgs().contains("z");
+		
+		if (!(x || y || z)) { //no axis flags passed
+			x = true;
+			y = true;
+			z = true;
+		}
 		
 		BlockTransaction t = new BlockTransaction(d);
-		d.align(to_center);
+		d.align(to_center, x, y, z);
 		t.commit(d.getBlocks());
 		session.pushTransaction(t);
 		
@@ -957,14 +974,14 @@ public class CommandHandler {
 	
 	public void save(CommandContext ct) {
 		DexSession session = ct.getSession();
-		DexterityDisplay d = getSelected(session, "save");
+		DexterityDisplay d = getSelected(session, "save", "label");
 		if (d == null) return;
 		
 		String[] args = ct.getArgs();
 		Player p = ct.getPlayer();
 		
 		if (args.length != 2) {
-			if (args[0].equals("save")) p.sendMessage(getUsage("rename").replaceAll(" name", " save"));
+			if (args[0].equals("save") || args[0].equals("label")) p.sendMessage(getUsage("rename").replaceAll(" name", " label"));
 			else p.sendMessage(getUsage("rename"));
 			return;
 		}
@@ -996,7 +1013,7 @@ public class CommandHandler {
 				return;
 			}
 		} else {
-			d = getSelected(session, "save");
+			d = getSelected(session, "save", "label");
 			if (d == null) return;
 			if (!d.isSaved()) {
 				p.sendMessage(getConfigString("not-saved", session));

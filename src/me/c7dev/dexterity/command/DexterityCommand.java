@@ -211,6 +211,7 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		case "redo":
 			handler.redo(ctx);
 			return true;
+		case "unlabel":
 		case "unsave":
 			handler.unsave(ctx);
 			return true;
@@ -326,6 +327,9 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 			ret.add("-set");
 			return ret;
 		case "align":
+			ret.add("-x");
+			ret.add("-y");
+			ret.add("-z");
 			ret.add("-center");
 			return ret;
 		case "tile":

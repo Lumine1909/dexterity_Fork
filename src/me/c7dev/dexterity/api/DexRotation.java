@@ -257,10 +257,13 @@ public class DexRotation {
 		
 		double delX, delY, delZ, delYaw, delPitch, delRoll;
 		if (plan.reset) {
-			delX = -plan.xDeg; delY = -plan.yDeg; delZ = -plan.zDeg;
-			delPitch = plan.pitchDeg; delYaw = plan.yawDeg; delRoll = plan.rollDeg;
-			baseY = 0; baseX = 0; baseZ = 0;
-			baseYaw = 0; basePitch = 0; baseRoll = 0;
+			delX = -plan.xDeg; 
+			delY = -plan.yDeg; 
+			delZ = -plan.zDeg;
+			delPitch = plan.pitchDeg;
+			delYaw = plan.yawDeg; 
+			delRoll = plan.rollDeg;
+			baseY = baseX = baseZ = baseYaw = basePitch = baseRoll = 0;
 		} else {
 			delX = plan.setX ? -plan.xDeg - baseX : -plan.xDeg; //right hand rule
 			delY = plan.setY ? -plan.yDeg - baseY : -plan.yDeg;
@@ -305,10 +308,13 @@ public class DexRotation {
 	public QueuedRotation prepareRotation(RotationPlan plan, RotationTransaction transaction) {
 		double delX, delY, delZ, delYaw, delPitch, delRoll;
 		if (plan.reset) {
-			delX = -plan.xDeg; delY = -plan.yDeg; delZ = -plan.zDeg;
-			delPitch = plan.pitchDeg; delYaw = plan.yawDeg; delRoll = plan.rollDeg;
-			baseY = 0; baseX = 0; baseZ = 0;
-			baseYaw = 0; basePitch = 0; baseRoll = 0;
+			delX = -plan.xDeg; 
+			delY = -plan.yDeg; 
+			delZ = -plan.zDeg;
+			delPitch = plan.pitchDeg; 
+			delYaw = plan.yawDeg; 
+			delRoll = plan.rollDeg;
+			baseY = baseX = baseZ = baseYaw = basePitch = baseRoll = 0;
 		} else {
 			delX = plan.setX ? -plan.xDeg - baseX : -plan.xDeg; //right hand rule
 			delY = plan.setY ? -plan.yDeg - baseY : -plan.yDeg;
@@ -342,6 +348,7 @@ public class DexRotation {
 		qY.transformInverse(z);
 		return src.mul(qY);
 	}
+	
 	private Quaterniond yawQuaternion(double rads, Quaterniond src) {
 		double sintheta = Math.sin(rads / 2), costheta = Math.cos(rads/2);
 		Quaterniond qYaw = new Quaterniond(sintheta*y.x, sintheta*y.y, sintheta*y.z, costheta);
@@ -350,6 +357,7 @@ public class DexRotation {
 		qYaw.transformInverse(z);
 		return src.mul(qYaw);
 	}
+	
 	private Quaterniond xQuaternion(double rads, Quaterniond src) {
 		double sintheta = Math.sin(rads / 2), costheta = Math.cos(rads/2);
 		Quaterniond qX = new Quaterniond(sintheta, 0, 0, costheta);
@@ -358,6 +366,7 @@ public class DexRotation {
 		qX.transformInverse(z);
 		return src.mul(qX);
 	}
+	
 	private Quaterniond pitchQuaternion(double rads, Quaterniond src) {
 		double sintheta = Math.sin(rads / 2), costheta = Math.cos(rads/2);
 		Quaterniond qPitch = new Quaterniond(sintheta*x.x, sintheta*x.y, sintheta*x.z, costheta);
@@ -366,6 +375,7 @@ public class DexRotation {
 		qPitch.transformInverse(z);
 		return src.mul(qPitch);
 	}
+	
 	private Quaterniond zQuaternion(double rads, Quaterniond src) {
 		double sintheta = Math.sin(rads / 2), costheta = Math.cos(rads/2);
 		Quaterniond qZ = new Quaterniond(0, 0, sintheta, costheta);
@@ -374,6 +384,7 @@ public class DexRotation {
 		qZ.transformInverse(z);
 		return src.mul(qZ);
 	}
+	
 	private Quaterniond rollQuaternion(double rads, Quaterniond src) {
 		double sintheta = Math.sin(rads / 2), costheta = Math.cos(rads/2);
 		Quaterniond qRoll = new Quaterniond(sintheta*z.x, sintheta*z.y, sintheta*z.z, costheta);
@@ -382,6 +393,7 @@ public class DexRotation {
 		qRoll.transformInverse(z);
 		return src.mul(qRoll);
 	}
+	
 	private Quaterniond resetQuaternion() {
 		Vector3d cross = new Vector3d(), cross2 = new Vector3d(),
 				xTarget = new Vector3d(1, 0, 0), yTarget = new Vector3d(0, 1, 0);
