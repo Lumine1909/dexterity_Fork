@@ -83,7 +83,7 @@ public class CommandHandler {
 	}
 	
 	public DexterityDisplay getSelected(DexSession session, String... perms) {
-		if (perms.length > 0) {
+		if (perms != null && perms.length > 0) {
 			boolean auth = false;
 			for (String perm : perms) {
 				if (session.getPlayer().hasPermission("dexterity.command." + perm)) {
@@ -200,7 +200,7 @@ public class CommandHandler {
 	
 	public void debug_centers(CommandContext ct) {
 		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
-		DexterityDisplay d = getSelected(ct.getSession(), null);
+		DexterityDisplay d = getSelected(ct.getSession());
 		if (d == null) return;
 		boolean entity_centers = ct.getFlags().contains("entities");
 		for (DexBlock db : d.getBlocks()) {
@@ -211,7 +211,7 @@ public class CommandHandler {
 	
 	public void debug_removetransformation(CommandContext ct) {
 		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
-		DexterityDisplay d = getSelected(ct.getSession(), null);
+		DexterityDisplay d = getSelected(ct.getSession());
 		if (d == null) return;
 		for (DexBlock db : d.getBlocks()) {
 			db.getEntity().setTransformation(new DexTransformation(db.getEntity().getTransformation()).setDisplacement(new Vector(0, 0, 0)).setRollOffset(new Vector(0, 0, 0)).build());
@@ -221,7 +221,7 @@ public class CommandHandler {
 	
 	public void debug_resettransformation(CommandContext ct) {
 		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
-		DexterityDisplay d = getSelected(ct.getSession(), null);
+		DexterityDisplay d = getSelected(ct.getSession());
 		if (d == null) return;
 		for (DexBlock db : d.getBlocks()) {
 			db.loadTransformationAndRoll();
@@ -725,7 +725,7 @@ public class CommandHandler {
 	
 	public void cancel(CommandContext ct) {
 		DexSession session = ct.getSession();
-		DexterityDisplay d = getSelected(session, null);
+		DexterityDisplay d = getSelected(session);
 		if (d == null) return;
 		session.cancelEdit();
 		ct.getPlayer().sendMessage(getConfigString("cancelled-edit", session));
@@ -1253,7 +1253,7 @@ public class CommandHandler {
 	}
 	
 	public void info(CommandContext ct) {
-		DexterityDisplay d = getSelected(ct.getSession(), null);
+		DexterityDisplay d = getSelected(ct.getSession());
 		if (d == null) return;
 		if (ct.getFlags().contains("scale")) {
 			Vector scale = d.getScale();

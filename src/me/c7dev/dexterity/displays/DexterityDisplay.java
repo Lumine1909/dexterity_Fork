@@ -998,7 +998,6 @@ public class DexterityDisplay {
 			Vector locv = center.toVector();
 			Vector locvb = new Vector(Math.round(locv.getX()), Math.round(locv.getY()), Math.round(locv.getZ()));
 			diff = locvb.clone().subtract(locv);
-//			teleport(diff);
 		} else {
 			DexBlock block = null;
 			double minx = 0, miny = 0, minz = 0;
@@ -1013,8 +1012,7 @@ public class DexterityDisplay {
 			}
 			if (block == null) return;
 			Location loc = block.getLocation().add(block.getTransformation().getDisplacement());
-			diff = loc.clone().subtract(DexUtils.blockLoc(loc.clone())).toVector().multiply(-1); // = -disp
-//			teleport(center.clone().subtract(disp));
+			diff = loc.clone().subtract(DexUtils.blockLoc(loc.clone())).toVector().multiply(-1);
 		}
 		
 		if (!x) diff.setX(0);
