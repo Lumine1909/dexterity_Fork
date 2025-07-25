@@ -336,19 +336,31 @@ public class CommandHandler {
 			return;
 		}
 		
-		Location loc = p.getLocation();
-		if (!ct.getFlags().contains("continuous")) DexUtils.blockLoc(loc).add(0.5, 0.5, 0.5);
-		
-		BlockTransaction t = new BlockTransaction(d);
-		t.commitCenter(loc);
-		t.commitEmpty();
-		
-		d.setCenter(loc);
-		api.markerPoint(loc, Color.AQUA, 4);
-		
-		session.pushTransaction(t);
-		
-		p.sendMessage(getConfigString("recenter-success", session));
+		if (ct.getFlags().contains("auto") || ct.getFlags().contains("reset")) {
+			BlockTransaction t = new BlockTransaction(d);
+			t.commitCenter(d.getCenter());
+			t.commitEmpty();
+			
+			d.recalculateCenter(false);
+			api.markerPoint(d.getCenter(), Color.AQUA, 4);
+			
+			session.pushTransaction(t);
+			p.sendMessage(getConfigString("recenter-auto-success", session));
+		} else {
+			Location loc = p.getLocation();
+			if (!ct.getFlags().contains("continuous")) DexUtils.blockLoc(loc).add(0.5, 0.5, 0.5);
+
+			BlockTransaction t = new BlockTransaction(d);
+			t.commitCenter(loc);
+			t.commitEmpty();
+
+			d.setCenter(loc);
+			api.markerPoint(loc, Color.AQUA, 4);
+
+			session.pushTransaction(t);
+
+			p.sendMessage(getConfigString("recenter-success", session));
+		}
 	}
 	
 	public void align(CommandContext ct) {

@@ -208,9 +208,17 @@ public class DexterityDisplay {
 	}
 	
 	/**
-	 * Recalculates the average block display location and determines the overall selection's scale
+	 * Recalculates the average block display location and the overall selection's scale.
 	 */
 	public void recalculateCenter() {
+		recalculateCenter(true);
+	}
+	
+	/**
+	 * Recalculates the average block display location and optionally recalculates the overall selection's scale
+	 * @param rescale If false, does not change scale
+	 */
+	public void recalculateCenter(boolean rescale) {
 		Vector cvec = new Vector(0, 0, 0);
 		World w;
 		int n = 0;
@@ -227,14 +235,16 @@ public class DexterityDisplay {
 			for (DexBlock db : blocks) {
 				cvec.add(db.getLocation().toVector());
 				
-				Vector scale = db.getTransformation().getScale();
-				if (scale.getX() > scalex) scalex = scale.getX();
-				if (scale.getY() > scaley) scaley = scale.getY();
-				if (scale.getZ() > scalez) scalez = scale.getZ();
+				if (rescale) {
+					Vector scale = db.getTransformation().getScale();
+					if (scale.getX() > scalex) scalex = scale.getX();
+					if (scale.getY() > scaley) scaley = scale.getY();
+					if (scale.getZ() > scalez) scalez = scale.getZ();
+				}
 				
 				if (zeroPitch && db.getEntity().getLocation().getPitch() != 0) zeroPitch = false;
 			}
-			scale = new Vector(scalex, scaley, scalez);
+			if (rescale) scale = new Vector(scalex, scaley, scalez);
 		}
 		center = DexUtils.location(w, cvec.multiply(1.0/n));
 	}

@@ -36,7 +36,6 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		"mask", "merge", "move", "owner", "pos1", "recenter", "redo", "reload", "remove", "replace", "rotate", "scale", "schem", "seat", "select", 
 		"undo", "unsave", "tile", "wand"
 	};
-	private String[] descriptions = new String[commands.length];
 	private String[] command_strs = new String[commands.length];
 	
 	public DexterityCommand(Dexterity plugin) {
@@ -49,8 +48,7 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 		handler = new CommandHandler(plugin);
 		
 		for (int i = 0; i < commands.length; i++) {
-			descriptions[i] = plugin.getConfigString(commands[i] + "-description");
-			command_strs[i] = cc + "- " + cc2 + "/d " + commands[i] + " §8- " + cc + descriptions[i];
+			command_strs[i] = cc + "- " + cc2 + "/d " + commands[i] + " §8- " + cc + plugin.getConfigString(commands[i] + "-description");
 		}
 	}
 	
@@ -310,6 +308,7 @@ public class DexterityCommand implements CommandExecutor, TabCompleter {
 			ret.add("-invert");
 			return ret;
 		case "recenter":
+			ret.add("-auto");
 			ret.add("-continuous");
 			return ret;
 		case "r":
