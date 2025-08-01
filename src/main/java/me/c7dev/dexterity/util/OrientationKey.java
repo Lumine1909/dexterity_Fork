@@ -1,0 +1,73 @@
+package me.c7dev.dexterity.util;
+
+import org.joml.Quaternionf;
+
+/**
+ * Hashable object to represent a unique yaw, pitch, and rotation transformation's quaternion in a map
+ */
+public class OrientationKey {
+
+    private final Quaternionf q;
+    private final double x;
+    private final double y;
+    private long lastUsed = System.currentTimeMillis();
+
+    public static final double epsilon = 0.000001;
+
+    public OrientationKey(double yaw, double pitch, Quaternionf q) {
+        this.q = q;
+        this.x = yaw;
+        this.y = pitch;
+    }
+
+    public long getLastUsedTime() {
+        return lastUsed;
+    }
+
+    public void use() {
+        lastUsed = System.currentTimeMillis();
+    }
+
+    public Quaternionf getQuaternion() {
+        return q;
+    }
+
+    public double getYaw() {
+        return x;
+    }
+
+    public double getPitch() {
+        return y;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof OrientationKey k)) {
+            return false;
+        }
+        boolean equals = Math.abs(k.getYaw() - x) < epsilon && Math.abs(k.getPitch() - y) < epsilon
+            && Math.abs(k.getQuaternion().w - q.w) < epsilon && Math.abs(k.getQuaternion().z - q.z) < epsilon
+            && Math.abs(k.getQuaternion().x - q.x) < epsilon && Math.abs(k.getQuaternion().y - q.y) < epsilon;
+        if (equals) {
+            k.use();
+            this.use();
+        }
+        return equals;
+    }
+
+    public int hashCode() {
+        int hash = 7;
+
+        hash = 31 * hash + (int) (Double.doubleToLongBits(x) ^ (Double.doubleToLongBits(x) >>> 32));
+        hash = 31 * hash + (int) (Double.doubleToLongBits(y) ^ (Double.doubleToLongBits(y) >>> 32));
+        hash = 31 * hash + (int) (Double.doubleToLongBits(q.x) ^ (Double.doubleToLongBits(q.x) >>> 32));
+        hash = 31 * hash + (int) (Double.doubleToLongBits(q.y) ^ (Double.doubleToLongBits(q.y) >>> 32));
+        hash = 31 * hash + (int) (Double.doubleToLongBits(q.z) ^ (Double.doubleToLongBits(q.z) >>> 32));
+        hash = 31 * hash + (int) (Double.doubleToLongBits(q.w) ^ (Double.doubleToLongBits(q.w) >>> 32));
+
+        return hash;
+
+    }
+
+
+}

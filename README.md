@@ -1,3 +1,9 @@
+## Disclaimer: 
+
+This project is intended for personal study and educational purposes only. For official and up-to-date versions, please download the original plugin from: https://www.spigotmc.org/resources/118489/. I am not the original author and do not take responsibility for the original code or its functionality.
+
+----------------------
+
 <p align="center">
     <img src="https://dexterity.s3.us-east-2.amazonaws.com/v153jd/dex_banner.png" alt="Dexterity" width="75%" height="75%">
 </p>
