@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -600,7 +599,7 @@ public class Dexterity extends JavaPlugin {
 	public int purgeUnloadedDisplays() {
 		int count = 0;
 		
-		List<DexterityDisplay> allRootNodes = new LinkedList<>();
+		List<DexterityDisplay> allRootNodes = new ArrayList<>();
 		for (Entry<String,DexterityDisplay> entry : displays.entrySet()) {
 			if (entry.getValue().getParent() != null) continue;
 			allRootNodes.add(entry.getValue());

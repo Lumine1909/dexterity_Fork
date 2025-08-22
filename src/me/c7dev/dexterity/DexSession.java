@@ -1,7 +1,7 @@
 package me.c7dev.dexterity;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,7 +62,7 @@ public class DexSession {
 	private Transaction editTransaction;
 	private Location origLoc;
 	private double volume = 0;
-	private LinkedList<Transaction> toUndo = new LinkedList<>(), toRedo = new LinkedList<>(); //push/pop from first element
+	private ArrayDeque<Transaction> toUndo = new ArrayDeque<>(), toRedo = new ArrayDeque<>(); //push/pop from first element
 	private BuildTransaction buildTrans;
 	private Mask mask;
 	private boolean cancelPhysics = false, sentClickMsg = false;

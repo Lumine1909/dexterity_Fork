@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -41,9 +40,17 @@ public class Schematic {
 	private HuffmanTree root = new HuffmanTree(null, null);
 	private List<Token> data = new ArrayList<>();
 	private boolean loaded = false;
-	private LinkedList<SimpleDisplayState> displays = new LinkedList<>();
+	private List<SimpleDisplayState> displays = new ArrayList<>();
 	private Dexterity plugin;
 	private MessageDigest sha256;
+	
+	private enum DecodeState {
+		NOT_STARTED,
+		SEEK_TAG_LENGTH,
+		SEEK_TYPE, //or len digits
+		GET_TAG,
+		SEEK_VALUE, //until delimiter
+	}
 
 	public Schematic(Dexterity plugin, String file_name) {
 		this.fileName = file_name;
@@ -99,7 +106,6 @@ public class Schematic {
 				if (!hashread.equals(hashval)) throw new DexterityException("Could not load schematic: Hashes do not match");
 				
 				load(schem);
-				
 			} else {
 				throw new DexterityException(file_name + " does not exist in schematics folder!");
 			}
@@ -201,83 +207,77 @@ public class Schematic {
 		byte buffer = data[0];
 		HuffmanTree curr = root;
 		
-		//state 0: Seek tag length, 1: Seek type (or more len digits), 2: Get tag, 3: Seek value until delimiter
-		int state = -1, taglen = 0, tagread_index = 0;
+		DecodeState state = DecodeState.NOT_STARTED;
+		int taglen = 0, tagread_index = 0;
 		TokenType type = null;
 		StringBuilder val = new StringBuilder();
 		BinaryTag tagread = null;
-		boolean b = false;
+		boolean toLeft = false;
 		
 		while(true) { //Encoder format (v1, base 10): [<tag len>] <type> [<val chars>] [tag] <block delimiter>
 			
-			if (state == -1) state = 0; //first bit - need to run code later
+			if (state == DecodeState.NOT_STARTED) state = DecodeState.SEEK_TAG_LENGTH; //first bit - may need to run code later
 			else {
-
-				if (state == 2) { //read binary tag
-					if (b) tagread.bits.set(tagread_index);
+				if (state == DecodeState.GET_TAG) { //read binary tag
+					if (toLeft) tagread.bits.set(tagread_index);
 					tagread_index++;
-					if (tagread_index == taglen) {
-						state = 3; //read value
-					}
+					if (tagread_index == taglen) state = DecodeState.SEEK_VALUE; //read value
 				} else {
-
-					if (curr == null) {
-						throw new DexterityException("Malformed objects header: Invalid sequence");
-					}
+					if (curr == null) throw new DexterityException("Malformed objects header: Invalid sequence");
 
 					if (curr.getLeafToken() != null) {
 						Token token = curr.getLeafToken();
 
 						if (token.getType() == TokenType.ASCII) {
 							CharToken ctk = (CharToken) token;
-							if (state == 0 || state == 1) { //tag length int
+							if (state == DecodeState.SEEK_TAG_LENGTH || state == DecodeState.SEEK_TYPE) { //tag length int
 								if (ctk.getCharValue() < 48 || ctk.getCharValue() > 57) throw new DexterityException("Malformed objects header: Expected tag length to be number");
 								taglen = (10*taglen) + (ctk.getCharValue() - 48);
-								state = 1; //allow 'type' token
+								state = DecodeState.SEEK_TYPE; //allow 'type' token
 							}
-							else if (state == 3) {
+							else if (state == DecodeState.SEEK_VALUE) {
 								val.append(ctk.getCharValue());
 							}
 						}
 						else if (token.getType() == TokenType.BLOCK_DELIMITER) {
-							if (state == 3) {
+							if (state == DecodeState.SEEK_VALUE) {
 								Token t = Token.createToken(type, val.toString());
 								t.setTag(tagread);
 								addToken(t);
 							}
 
 							//reset state
-							state = taglen = tagread_index = 0;
+							state = DecodeState.SEEK_TAG_LENGTH;
+							taglen = tagread_index = 0;
 							type = null;
 							tagread = null;
 							val = new StringBuilder();
 						}
 						else if (token.getType() == TokenType.DATA_END) return;
-						else if (state == 1) {
+						else if (state == DecodeState.SEEK_TYPE) {
 							type = token.getType();
 							tagread = new BinaryTag(taglen);
 							tagread_index = 0;
-							state = 2;
-
+							state = DecodeState.GET_TAG;
 						}
 						else throw new DexterityException("Malformed objects header: Token sequencing is incorrect for object definition (" + state + ")");
 
 						curr = root;
 						continue;
 					} else {
-						if (b) curr = curr.getLeft();
+						if (toLeft) curr = curr.getLeft();
 						else curr = curr.getRight();
 					}
 				}
 			}
 			
-			if (index >= 8) {
+			if (index >= 8) { //next byte
 				index = 0;
 				data_index++;
 				if (data_index == data.length) break;
 				else buffer = data[data_index];
 			}
-			b = bit(buffer, 7-index);
+			toLeft = bit(buffer, 7-index);
 			index++;
 		}
 		
@@ -339,29 +339,29 @@ public class Schematic {
 	 */
 	public void reloadBlocks(List<Token> data) { //block data interpreter
 		displays.clear();
-		SimpleDisplayState w = new SimpleDisplayState(plugin.getNextLabel(fileName));
+		SimpleDisplayState workingDisplay = new SimpleDisplayState(plugin.getNextLabel(fileName));
 		World world = Bukkit.getWorlds().get(0); //placeholder
-		DexBlockState state = newState(world);
+		DexBlockState blockState = newState(world);
 		
 		for (Token t : data) {
 			switch(t.getType()) {
 			case DISPLAY_DELIMITER:
-				w.addBlock(state); //won't add if data not set
-				if (w.getBlocks().size() > 0) {
-					displays.addLast(w);
-					w = new SimpleDisplayState(plugin.getNextLabel(fileName));
-					state = newState(world);
+				workingDisplay.addBlock(blockState); //won't add if data not set
+				if (workingDisplay.getBlocks().size() > 0) {
+					displays.addLast(workingDisplay);
+					workingDisplay = new SimpleDisplayState(plugin.getNextLabel(fileName));
+					blockState = newState(world);
 				}
 				continue;
 				
 			case DATA_END:
-				w.addBlock(state);
-				if (w.getBlocks().size() > 0) displays.addLast(w);
+				workingDisplay.addBlock(blockState);
+				if (workingDisplay.getBlocks().size() > 0) displays.addLast(workingDisplay);
 				return;
 				
 			case BLOCK_DELIMITER:
-				w.addBlock(state);
-				state = newState(world);
+				workingDisplay.addBlock(blockState);
+				blockState = newState(world);
 				continue;
 			default:
 			}
@@ -371,81 +371,56 @@ public class Schematic {
 				double val = dt.getDoubleValue();
 
 				switch(t.getType()) {
-				case DX:
-					state.getLocation().setX(val);
-					break;
-				case DY:
-					state.getLocation().setY(val);
-					break;
-				case DZ:
-					state.getLocation().setZ(val);
-					break;
-				case YAW:
-					state.getLocation().setYaw((float) val);
-					break;
-				case PITCH:
-					state.getLocation().setPitch((float) val);
-					break;
-				case ROLL:
-					state.setRoll((float) val);
-					break;
-				case SCALE_X:
-					state.getTransformation().getScale().setX(val);
-					state.getTransformation().getDisplacement().setX(-0.5*val);
-					break;
-				case SCALE_Y:
-					state.getTransformation().getScale().setY(val);
-					state.getTransformation().getDisplacement().setY(-0.5*val);
-					break;
-				case SCALE_Z:
-					state.getTransformation().getScale().setZ(val);
-					state.getTransformation().getDisplacement().setZ(-0.5*val);
-					break;
-				case TRANS_X:
-					state.getTransformation().getDisplacement().setX(val);
-					break;
-				case TRANS_Y:
-					state.getTransformation().getDisplacement().setY(val);
-					break;
-				case TRANS_Z:
-					state.getTransformation().getDisplacement().setZ(val);
-					break;
-				case ROFFSET_X:
-					state.getTransformation().getRollOffset().setX(val);
-					break;
-				case ROFFSET_Y:
-					state.getTransformation().getRollOffset().setY(val);
-					break;
-				case ROFFSET_Z:
-					state.getTransformation().getRollOffset().setZ(val);
-					break;
-				case QUAT_X:
-					state.getTransformation().getLeftRotation().x = (float) val;
-					break;
-				case QUAT_Y:
-					state.getTransformation().getLeftRotation().y = (float) val;
-					break;
-				case QUAT_Z:
-					state.getTransformation().getLeftRotation().z = (float) val;
-					break;
-				case QUAT_W:
-					state.getTransformation().getLeftRotation().w = (float) val;
-					break;
-				case GLOW_ARGB:
-					state.setGlow(Color.fromARGB((int) val));
-				default:
+				case DX -> blockState.getLocation().setX(val);
+				case DY -> blockState.getLocation().setY(val);
+				case DZ -> blockState.getLocation().setZ(val);
+				case YAW -> blockState.getLocation().setYaw((float) val);
+				case PITCH -> blockState.getLocation().setPitch((float) val);
+				case ROLL -> blockState.setRoll((float) val);
+				case SCALE_X -> {
+					blockState.getTransformation().getScale().setX(val);
+					blockState.getTransformation().getDisplacement().setX(-0.5*val);
+				}
+				case SCALE_Y -> {
+					blockState.getTransformation().getScale().setY(val);
+					blockState.getTransformation().getDisplacement().setY(-0.5*val);
+				}
+				case SCALE_Z -> {
+					blockState.getTransformation().getScale().setZ(val);
+					blockState.getTransformation().getDisplacement().setZ(-0.5*val);
+				}
+				case TRANS_X -> blockState.getTransformation().getDisplacement().setX(val);
+				case TRANS_Y -> blockState.getTransformation().getDisplacement().setY(val);
+				case TRANS_Z -> blockState.getTransformation().getDisplacement().setZ(val);
+				case ROFFSET_X -> blockState.getTransformation().getRollOffset().setX(val);
+				case ROFFSET_Y -> blockState.getTransformation().getRollOffset().setY(val);
+				case ROFFSET_Z -> blockState.getTransformation().getRollOffset().setZ(val);
+				case QUAT_X -> blockState.getTransformation().getLeftRotation().x = (float) val;
+				case QUAT_Y -> blockState.getTransformation().getLeftRotation().y = (float) val;
+				case QUAT_Z -> blockState.getTransformation().getLeftRotation().z = (float) val;
+				case QUAT_W -> blockState.getTransformation().getLeftRotation().w = (float) val;
+				case GLOW_ARGB -> blockState.setGlow(Color.fromARGB((int) val));
+				case DISPLAY_SCALE_X -> workingDisplay.getScale().setX(val);
+				case DISPLAY_SCALE_Y -> workingDisplay.getScale().setY(val);
+				case DISPLAY_SCALE_Z -> workingDisplay.getScale().setZ(val);
+				case DISPLAY_ROT_X1 -> workingDisplay.getRotationX().setX(val);
+				case DISPLAY_ROT_X2 -> workingDisplay.getRotationX().setY(val);
+				case DISPLAY_ROT_X3 -> workingDisplay.getRotationX().setZ(val);
+				case DISPLAY_ROT_Y1 -> workingDisplay.getRotationY().setX(val);
+				case DISPLAY_ROT_Y2 -> workingDisplay.getRotationY().setY(val);
+				case DISPLAY_ROT_Y3 -> workingDisplay.getRotationY().setZ(val);
+				case DISPLAY_ROT_Z1 -> workingDisplay.getRotationZ().setX(val);
+				case DISPLAY_ROT_Z2 -> workingDisplay.getRotationZ().setY(val);
+				case DISPLAY_ROT_Z3 -> workingDisplay.getRotationZ().setZ(val);
+				default -> {}
 				}
 			}
 			else if (t instanceof StringToken) {
 				StringToken st = (StringToken) t;
 				switch(t.getType()) {
-				case BLOCKDATA:
-					state.setBlock(Bukkit.createBlockData(st.getStringValue()));
-					break;
-				case LABEL:
-					w.setLabel(plugin.getNextLabel(st.getStringValue()));
-					break;
-				default:
+				case BLOCKDATA -> blockState.setBlock(Bukkit.createBlockData(st.getStringValue()));
+				case LABEL -> workingDisplay.setLabel(plugin.getNextLabel(st.getStringValue()));
+				default -> {}
 				}
 			}
 			
@@ -487,11 +462,16 @@ public class Schematic {
 		loc = loc.clone();
 		DexterityDisplay d = null;
 		Vector locv = loc.toVector();
+		double MIN_SCALE = 0.05, MAX_SCALE = 20; //prevent funny business with /d scale -set
 		
-		for (SimpleDisplayState display : displays) {
+		for (SimpleDisplayState display : displays) { //spawn displays
 			DexterityDisplay working_disp;
+			Vector scale = new Vector(Math.clamp(display.getScale().getX(), MIN_SCALE, MAX_SCALE),
+					Math.clamp(display.getScale().getY(), MIN_SCALE, MAX_SCALE),
+					Math.clamp(display.getScale().getZ(), MIN_SCALE, MAX_SCALE));
 			if (d == null) {
-				d = new DexterityDisplay(plugin, loc, new Vector(1, 1, 1), plugin.getNextLabel(display.getLabel()));
+				d = new DexterityDisplay(plugin, loc, scale, plugin.getNextLabel(display.getLabel()));
+				d.setBaseRotation(display.getRotationX(), display.getRotationY(), display.getRotationZ());
 				working_disp = d;
 			}
 			else {

@@ -1,8 +1,8 @@
 package me.c7dev.dexterity.api;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,7 +38,7 @@ public class DexRotation {
 	private double baseX = 0, baseY = 0, baseZ = 0, basePitch = 0, baseRoll = 0, baseYaw = 0;
 	private List<BlockDisplay> points = new ArrayList<>();
 	private RotationTransaction t = null;
-	private LinkedList<QueuedRotation> queue = new LinkedList<>();
+	private ArrayDeque<QueuedRotation> queue = new ArrayDeque<>();
 	private boolean processing = false;
 	
 	public static final double cutoff = 0.000001;

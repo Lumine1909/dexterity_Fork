@@ -1077,6 +1077,16 @@ public class DexterityDisplay {
 	}
 	
 	/**
+	 * Reset the direction axes to the specified x, y, and z orthonormal vectors
+	 * @param x
+	 * @param y
+	 * @param z
+	 */
+	public void setBaseRotation(Vector x, Vector y, Vector z) {
+		rot = new DexRotation(this, x, y, z);
+	}
+	
+	/**
 	 * Gets the rotation manager if one is already created
 	 * @return
 	 */
