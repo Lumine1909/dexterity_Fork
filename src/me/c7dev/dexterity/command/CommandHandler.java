@@ -198,7 +198,7 @@ public class CommandHandler {
 		ct.getPlayer().getInventory().addItem(wand);
 	}
 	
-	public void debug_centers(CommandContext ct) {
+	public void debugCenters(CommandContext ct) {
 		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
 		DexterityDisplay d = getSelected(ct.getSession());
 		if (d == null) return;
@@ -209,7 +209,7 @@ public class CommandHandler {
 		}
 	}
 	
-	public void debug_removetransformation(CommandContext ct) {
+	public void debugRemoveTransformation(CommandContext ct) {
 		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
 		DexterityDisplay d = getSelected(ct.getSession());
 		if (d == null) return;
@@ -219,7 +219,7 @@ public class CommandHandler {
 		}
 	}
 	
-	public void debug_resettransformation(CommandContext ct) {
+	public void debugResetTransformation(CommandContext ct) {
 		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
 		DexterityDisplay d = getSelected(ct.getSession());
 		if (d == null) return;
@@ -230,7 +230,7 @@ public class CommandHandler {
 		d.recalculateCenter();
 	}
 	
-	public void debug_testnear(CommandContext ct) {
+	public void debugTestNear(CommandContext ct) {
 		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
 		ClickedBlockDisplay b = api.getLookingAt(ct.getPlayer());
 		if (b == null) ct.getPlayer().sendMessage(cc + "None in range");
@@ -240,7 +240,7 @@ public class CommandHandler {
 		}
 	}
 	
-	public void debug_kill(CommandContext ct) {
+	public void debugKill(CommandContext ct) {
 		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
 		HashMap<String, Double> attrs_d = ct.getDoubleAttrs();
 		if (!attrs_d.containsKey("radius") && !attrs_d.containsKey("r")) {
@@ -262,12 +262,12 @@ public class CommandHandler {
 		}
 	}
 	
-	public void debug_purgeunloaded(CommandContext ct) {
+	public void debugPurgeUnloaded(CommandContext ct) {
 		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
 		plugin.purgeUnloadedDisplays();
 	}
 	
-	public void debug_item(CommandContext ct) {
+	public void debugItem(CommandContext ct) {
 		if (!ct.getPlayer().hasPermission("dexterity.admin")) return;
 		Player p = ct.getPlayer();
 		ItemStack hand = ct.getPlayer().getInventory().getItemInMainHand();
@@ -1338,29 +1338,32 @@ public class CommandHandler {
 		Player p = ct.getPlayer();
 		if (!withPermission(p, "list")) return;
 		
-		HashMap<String, Integer> attrs = ct.getIntAttrs();
-		HashMap<String, String> attr_str = ct.getStringAttrs();
+		HashMap<String, Integer> intAttrs = ct.getIntAttrs();
+		HashMap<String, String> strAtrs = ct.getStringAttrs();
 		
 		int page = 0;
-		if (attrs.containsKey("page")) {
-			page = Math.max(attrs.get("page") - 1, 0);
+		if (intAttrs.containsKey("page")) {
+			page = Math.max(intAttrs.get("page") - 1, 0);
 		} else if (ct.getArgs().length >= 2) page = Math.max(DexUtils.parseInt(ct.getArgs()[1]) - 1, 0);			
 		int maxpage = DexUtils.maxPage(plugin.getDisplays().size(), 10);
 		if (page >= maxpage) page = maxpage - 1;
 		
-		String w = null;
-		if (attr_str.containsKey("world")) {
-			World world = Bukkit.getWorld(attr_str.get("world"));
-			if (world != null) w = world.getName();
+		String worldNameFilter = null;
+		if (strAtrs.containsKey("world")) {
+			World world = Bukkit.getWorld(strAtrs.get("world"));
+			if (world != null) worldNameFilter = world.getName();
 		}
 		boolean all = ct.getFlags().contains("all");
 		
 		int total = 0;
+		List<DexterityDisplay> filteredDisplays = new ArrayList<>();
 		for (DexterityDisplay d : plugin.getDisplays()) {
-			if (d.getLabel() == null || (w != null && !d.getCenter().getWorld().getName().equals(w))) continue;
+			if (d.getLabel() == null || (worldNameFilter != null && !d.getCenter().getWorld().getName().equals(worldNameFilter))) continue;
 			if (!all && !d.isListed()) continue; //temporary display
 			total += d.getGroupSize();
+			filteredDisplays.add(d);
 		}
+		
 		if (total == 0) {
 			p.sendMessage(plugin.getConfigString("no-saved-displays"));
 			return;
@@ -1368,13 +1371,13 @@ public class CommandHandler {
 		
 		p.sendMessage(plugin.getConfigString("list-page-header").replaceAll("\\Q%page%\\E", "" + (page+1)).replaceAll("\\Q%maxpage%\\E", ""+maxpage));
 		String[] strs = new String[total];
+		
 		int i = 0;
-		for (DexterityDisplay disp : plugin.getDisplays()) {
-			if (disp.getLabel() == null || (w != null && !disp.getCenter().getWorld().getName().equals(w))) continue;
-			if (!all && !disp.isListed()) continue; //temporary display
+		for (DexterityDisplay disp : filteredDisplays) {
 			DexSession session = ct.getSession();
 			i += constructList(strs, disp, session.getSelected() == null ? null : session.getSelected().getLabel(), i, 0);
 		}
+		
 		DexUtils.paginate(p, strs, page, 10);
 	}
 	

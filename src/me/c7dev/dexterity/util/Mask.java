@@ -1,17 +1,23 @@
 package me.c7dev.dexterity.util;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.bukkit.Material;
 
 public class Mask {
 	
-	private List<Material> blocks = new ArrayList<>();
+	private Set<Material> blocks = new HashSet<>();
 	private boolean negative = false;
 	
 	public Mask() {
 		
+	}
+	
+	public Mask(Material... materials) {
+		for (Material m : materials) blocks.add(m);
 	}
 	
 	public void addMaterialsList(String s) { //split by ,
@@ -27,15 +33,13 @@ public class Mask {
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		if (negative) s.append("(-) ");
-		for (int i = 0; i < blocks.size(); i++) {
-			s.append(blocks.get(i).toString().toLowerCase());
+		int i = 0;
+		for (Material mat : blocks) {
+			s.append(mat.toString().toLowerCase());
 			if (i < blocks.size() - 1) s.append(", ");
+			i++;
 		}
 		return s.toString();
-	}
-	
-	public Mask(Material... materials) {
-		for (Material m : materials) blocks.add(m);
 	}
 	
 	public void setNegative(boolean b) {
@@ -47,11 +51,13 @@ public class Mask {
 	}
 
 	public List<Material> getBlocks() {
-		return blocks;
+		List<Material> materials = new ArrayList<>();
+		for (Material mat : blocks) materials.add(mat);
+		return materials;
 	}
 	
 	public boolean isAllowed(Material m) {
-		if (blocks.size() == 0) return true;
+		if (blocks.isEmpty()) return true;
 		boolean included = blocks.contains(m);
 		if (negative) included = !included;
 		return included;
