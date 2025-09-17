@@ -77,6 +77,7 @@ public class CommandHandler {
 	public boolean withPermission(Player p, String perm) {
 		if (p.hasPermission("dexterity.command." + perm)) return true;
 		else {
+			if (perm.startsWith("schematic")) return withPermission(p, perm.replaceAll("schematic", "schem")); //remap for legacy
 			p.sendMessage(noperm);
 			return false;
 		}
@@ -1162,13 +1163,12 @@ public class CommandHandler {
 			return;
 		}
 		
-		//t.commit(); //async, done in callback
-		session.pushTransaction(t);
+		session.pushTransaction(t); //commit done in async callback
 	}
 	
 	public void schematic(CommandContext ct) {
 		Player p = ct.getPlayer();
-		if (!withPermission(p, "schem")) return;
+		if (!withPermission(p, "schematic")) return;
 		String[] args = ct.getArgs();
 		DexSession session = ct.getSession();
 
@@ -1177,7 +1177,7 @@ public class CommandHandler {
 			if (!withPermission(p, "schem.import") || testInEdit(session)) return;
 			
 			if (args.length == 2 || ct.getDefaultArgs().size() < 2) {
-				p.sendMessage(getUsage("schem"));
+				p.sendMessage(getUsage("schematic"));
 				return;
 			}
 
@@ -1206,10 +1206,16 @@ public class CommandHandler {
 			DexterityDisplay d = getSelected(session, "export");
 			if (d == null || testInEdit(session)) return;
 
-			if (!d.isSaved()) {
-				p.sendMessage(plugin.getConfigString("not-saved"));
-				return;
+			String label;
+			if (args.length >= 3) label = args[2];
+			else {
+				if (!d.isSaved()) {
+					p.sendMessage(getUsage("schematic"));
+					return;
+				}
+				label = d.getLabel();
 			}
+			label = label.toLowerCase();
 			
 			SchematicBuilder builder = new SchematicBuilder(plugin, d);
 			String author = p.getName();
@@ -1217,15 +1223,15 @@ public class CommandHandler {
 			if (attr_str.containsKey("author")) author = attr_str.get("author");
 			boolean overwrite = ct.getFlags().contains("overwrite");
 			
-			int res = builder.save(d.getLabel().toLowerCase(), author, overwrite);
+			int res = builder.save(label, author, overwrite);
 			
 			if (res == 0) p.sendMessage(getConfigString("schem-export-success", session));
-			else if (res == 1) p.sendMessage(getConfigString("file-already-exists", session).replaceAll("\\Q%input%\\E", "/schematics/" + d.getLabel().toLowerCase() + ".dexterity"));
+			else if (res == 1) p.sendMessage(getConfigString("file-already-exists", session).replaceAll("\\Q%input%\\E", "/schematics/" + label + ".dexterity"));
 			else if (res == -1) p.sendMessage(getConfigString("console-exception", session));
 		}
 		else if (args[1].equalsIgnoreCase("delete")) { //d schem delete
 			if (args.length <= 2) {
-				p.sendMessage(getUsage("schem"));
+				p.sendMessage(getUsage("schematic"));
 				return;
 			}
 			String name = args[2].toLowerCase();
