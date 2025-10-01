@@ -501,7 +501,7 @@ public class DexUtils {
     public static boolean isOrthonormal(Vector x, Vector y, Vector z) {
         double epsilon = 0.00000001;
         return x.dot(y) < epsilon && y.dot(z) < epsilon && z.dot(x) < epsilon &&
-            x.length() - 1 < epsilon && y.length() - 1 < epsilon && z.length() - 1 < epsilon;
+            Math.abs(x.length() - 1) < epsilon && Math.abs(y.length() - 1) < epsilon && Math.abs(z.length() - 1) < epsilon;
     }
 
     public static Vector nearestPoint(Vector a, Vector b, Vector x) { //nearest point to x on line defined by a, b

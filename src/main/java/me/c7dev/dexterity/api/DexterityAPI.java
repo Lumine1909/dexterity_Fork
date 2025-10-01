@@ -279,7 +279,7 @@ public class DexterityAPI {
         List<Entity> near = p.getNearbyEntities(4, 4, 4);
         Vector dir = p.getLocation().getDirection();
         Vector eyeLoc = p.getEyeLocation().toVector();
-        double mindist = Double.MAX_VALUE;
+        double minDist = Double.MAX_VALUE;
         ClickedBlockDisplay nearest = null;
 
         bdLoop:
@@ -428,12 +428,12 @@ public class DexterityAPI {
                         }
                 }
 
-                if (dist < mindist) {
+                if (dist < minDist) {
                     Vector rawOffset = basis1.clone().multiply(soln.getX())
                         .add(basis2.clone().multiply(soln.getY()));
                     Vector blockoffset = locs[i].clone().add(rawOffset); //surface location
 
-                    mindist = dist;
+                    minDist = dist;
                     nearest = new ClickedBlockDisplay(e, faces[i], rawOffset, DexUtils.location(loc.getWorld(), blockoffset),
                         loc, upDir, eastDir, southDir, dist);
                     if (ro != null) {

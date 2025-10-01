@@ -94,8 +94,7 @@ public class SchematicBuilder {
             freq.put(ctoken, 0);
         }
 
-        encodeBlocks(d);
-        encodeMetadata(d);
+        encodeDisplay(d);
         addToken(TokenType.DATA_END);
         assignTags();
     }
@@ -337,7 +336,7 @@ public class SchematicBuilder {
         }
     }
 
-    private void encodeBlocks(DexterityDisplay d) {
+    private void encodeDisplay(DexterityDisplay d) {
         d.sortBlocks();
         double epsilon = 0.00001;
         Token block_delimiter = specifierMap.get(TokenType.BLOCK_DELIMITER), display_delimiter = specifierMap.get(TokenType.DISPLAY_DELIMITER);
@@ -420,9 +419,10 @@ public class SchematicBuilder {
             addToken(block_delimiter);
         }
 
+        encodeMetadata(d);
         addToken(display_delimiter);
         for (DexterityDisplay sub : d.getSubdisplays()) {
-            encodeBlocks(sub);
+            encodeDisplay(sub);
         }
     }
 
@@ -430,6 +430,23 @@ public class SchematicBuilder {
         if (d.getLabel() != null) {
             addToken(getString(TokenType.LABEL, d.getLabel())); //TODO improve token interpreter to not have to put this in the objects header
         }
+        DexRotation rot = d.getRotationManager(false);
+        if (rot != null) {
+            Vector x = rot.getXAxis(), y = rot.getYAxis(), z = rot.getZAxis();
+            addToken(getDouble(TokenType.DISPLAY_ROT_X1, x.getX()));
+            addToken(getDouble(TokenType.DISPLAY_ROT_X2, x.getY()));
+            addToken(getDouble(TokenType.DISPLAY_ROT_X3, x.getZ()));
+            addToken(getDouble(TokenType.DISPLAY_ROT_Y1, y.getX()));
+            addToken(getDouble(TokenType.DISPLAY_ROT_Y2, y.getY()));
+            addToken(getDouble(TokenType.DISPLAY_ROT_Y3, y.getZ()));
+            addToken(getDouble(TokenType.DISPLAY_ROT_Z1, z.getX()));
+            addToken(getDouble(TokenType.DISPLAY_ROT_Z2, z.getY()));
+            addToken(getDouble(TokenType.DISPLAY_ROT_Z3, z.getZ()));
+        }
+        Vector scale = d.getScale();
+        addToken(getDouble(TokenType.DISPLAY_SCALE_X, scale.getX()));
+        addToken(getDouble(TokenType.DISPLAY_SCALE_Y, scale.getY()));
+        addToken(getDouble(TokenType.DISPLAY_SCALE_Z, scale.getZ()));
     }
 
     private List<Token> createObjectTokens(boolean create_list) {

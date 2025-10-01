@@ -29,6 +29,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.joml.Vector3f;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,8 +61,8 @@ public class DexSession {
     private Transaction editTransaction;
     private Location origLoc;
     private double volume = 0;
-    private final LinkedList<Transaction> toUndo = new LinkedList<>();
-    private final LinkedList<Transaction> toRedo = new LinkedList<>(); //push/pop from first element
+    private final ArrayDeque<Transaction> toUndo = new ArrayDeque<>();
+    private final ArrayDeque<Transaction> toRedo = new ArrayDeque<>(); //push/pop from first element
     private BuildTransaction buildTrans;
     private Mask mask;
     private boolean cancelPhysics = false, sentClickMsg = false;

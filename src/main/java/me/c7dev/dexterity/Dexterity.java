@@ -684,7 +684,7 @@ public class Dexterity extends JavaPlugin {
     public int purgeUnloadedDisplays() {
         int count = 0;
 
-        List<DexterityDisplay> allRootNodes = new LinkedList<>();
+        List<DexterityDisplay> allRootNodes = new ArrayList<>();
         for (Entry<String, DexterityDisplay> entry : displays.entrySet()) {
             if (entry.getValue().getParent() != null) {
                 continue;

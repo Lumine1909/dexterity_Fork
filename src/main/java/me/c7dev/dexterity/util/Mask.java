@@ -4,15 +4,23 @@ import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Mask {
 
-    private final List<Material> blocks = new ArrayList<>();
+    private final Set<Material> blocks = new HashSet<>();
     private boolean negative = false;
 
     public Mask() {
 
+    }
+
+    public Mask(Material... materials) {
+        for (Material m : materials) {
+            blocks.add(m);
+        }
     }
 
     public void addMaterialsList(String s) { //split by ,
@@ -30,17 +38,15 @@ public class Mask {
         if (negative) {
             s.append("(-) ");
         }
-        for (int i = 0; i < blocks.size(); i++) {
-            s.append(blocks.get(i).toString().toLowerCase());
+        int i = 0;
+        for (Material mat : blocks) {
+            s.append(mat.toString().toLowerCase());
             if (i < blocks.size() - 1) {
                 s.append(", ");
             }
+            i++;
         }
         return s.toString();
-    }
-
-    public Mask(Material... materials) {
-        Collections.addAll(blocks, materials);
     }
 
     public void setNegative(boolean b) {
@@ -52,11 +58,11 @@ public class Mask {
     }
 
     public List<Material> getBlocks() {
-        return blocks;
+        return new ArrayList<>(blocks);
     }
 
     public boolean isAllowed(Material m) {
-        if (blocks.size() == 0) {
+        if (blocks.isEmpty()) {
             return true;
         }
         boolean included = blocks.contains(m);

@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "me.c7dev"
-version = "1.6.5-R1"
+version = "1.6.8-R1"
 
 repositories {
     mavenCentral()

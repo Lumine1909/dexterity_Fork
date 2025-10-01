@@ -12,6 +12,11 @@ import java.util.ArrayList;
 public class SimpleDisplayState {
 
     private String label;
+    public boolean setscale = false;
+    private Vector x = new Vector(1, 0, 0),
+        y = new Vector(0, 1, 0),
+        z = new Vector(0, 0, 1),
+        scale = new Vector(1, 1, 1);
     private ArrayList<DexBlockState> blocks = new ArrayList<>();
 
     public SimpleDisplayState(String label) {
@@ -39,6 +44,22 @@ public class SimpleDisplayState {
 
     public ArrayList<DexBlockState> getBlocks() {
         return blocks;
+    }
+
+    public Vector getRotationX() {
+        return x;
+    }
+
+    public Vector getRotationY() {
+        return y;
+    }
+
+    public Vector getRotationZ() {
+        return z;
+    }
+
+    public Vector getScale() {
+        return scale;
     }
 
     public BoundingBox getBoundingBox() {

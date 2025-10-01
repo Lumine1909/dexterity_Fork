@@ -18,6 +18,7 @@ import org.joml.Matrix3d;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -37,7 +38,7 @@ public class DexRotation {
     private double baseX = 0, baseY = 0, baseZ = 0, basePitch = 0, baseRoll = 0, baseYaw = 0;
     private final List<BlockDisplay> points = new ArrayList<>();
     private RotationTransaction t = null;
-    private final LinkedList<QueuedRotation> queue = new LinkedList<>();
+    private final ArrayDeque<QueuedRotation> queue = new ArrayDeque<>();
     private boolean processing = false;
 
     public static final double cutoff = 0.000001;

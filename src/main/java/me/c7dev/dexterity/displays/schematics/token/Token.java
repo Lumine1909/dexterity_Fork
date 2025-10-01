@@ -39,6 +39,18 @@ public class Token {
         ROFFSET_Y,
         ROFFSET_Z,
         GLOW_ARGB,
+        DISPLAY_SCALE_X,
+        DISPLAY_SCALE_Y,
+        DISPLAY_SCALE_Z,
+        DISPLAY_ROT_X1,
+        DISPLAY_ROT_X2,
+        DISPLAY_ROT_X3,
+        DISPLAY_ROT_Y1,
+        DISPLAY_ROT_Y2,
+        DISPLAY_ROT_Y3,
+        DISPLAY_ROT_Z1,
+        DISPLAY_ROT_Z2,
+        DISPLAY_ROT_Z3
         //add any new types here
     }
 

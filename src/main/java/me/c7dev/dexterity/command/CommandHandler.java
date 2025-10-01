@@ -83,6 +83,9 @@ public class CommandHandler {
         if (p.hasPermission("dexterity.command." + perm)) {
             return true;
         } else {
+            if (perm.startsWith("schematic")) {
+                return withPermission(p, perm.replaceAll("schematic", "schem")); //remap for legacy
+            }
             p.sendMessage(noperm);
             return false;
         }
@@ -1478,13 +1481,12 @@ public class CommandHandler {
             return;
         }
 
-        //t.commit(); //async, done in callback
-        session.pushTransaction(t);
+        session.pushTransaction(t); //commit done in async callback
     }
 
     public void schematic(CommandContext ct) {
         Player p = ct.getPlayer();
-        if (!withPermission(p, "schem")) {
+        if (!withPermission(p, "schematic")) {
             return;
         }
         String[] args = ct.getArgs();
@@ -1498,7 +1500,7 @@ public class CommandHandler {
             }
 
             if (args.length == 2 || ct.getDefaultArgs().size() < 2) {
-                p.sendMessage(getUsage("schem"));
+                p.sendMessage(getUsage("schematic"));
                 return;
             }
 
@@ -1530,10 +1532,17 @@ public class CommandHandler {
                 return;
             }
 
-            if (!d.isSaved()) {
-                p.sendMessage(plugin.getConfigString("not-saved"));
-                return;
+            String label;
+            if (args.length >= 3) {
+                label = args[2];
+            } else {
+                if (!d.isSaved()) {
+                    p.sendMessage(getUsage("schematic"));
+                    return;
+                }
+                label = d.getLabel();
             }
+            label = label.toLowerCase();
 
             SchematicBuilder builder = new SchematicBuilder(plugin, d);
             String author = p.getName();
@@ -1543,18 +1552,18 @@ public class CommandHandler {
             }
             boolean overwrite = ct.getFlags().contains("overwrite");
 
-            int res = builder.save(d.getLabel().toLowerCase(), author, overwrite);
+            int res = builder.save(label, author, overwrite);
 
             if (res == 0) {
                 p.sendMessage(getConfigString("schem-export-success", session));
             } else if (res == 1) {
-                p.sendMessage(getConfigString("file-already-exists", session).replaceAll("\\Q%input%\\E", "/schematics/" + d.getLabel().toLowerCase() + ".dexterity"));
+                p.sendMessage(getConfigString("file-already-exists", session).replaceAll("\\Q%input%\\E", "/schematics/" + label + ".dexterity"));
             } else if (res == -1) {
                 p.sendMessage(getConfigString("console-exception", session));
             }
         } else if (args[1].equalsIgnoreCase("delete")) { //d schem delete
             if (args.length <= 2) {
-                p.sendMessage(getUsage("schem"));
+                p.sendMessage(getUsage("schematic"));
                 return;
             }
             String name = args[2].toLowerCase();
@@ -1697,12 +1706,12 @@ public class CommandHandler {
             return;
         }
 
-        HashMap<String, Integer> attrs = ct.getIntAttrs();
-        HashMap<String, String> attr_str = ct.getStringAttrs();
+        HashMap<String, Integer> intAttrs = ct.getIntAttrs();
+        HashMap<String, String> strAttrs = ct.getStringAttrs();
 
         int page = 0;
-        if (attrs.containsKey("page")) {
-            page = Math.max(attrs.get("page") - 1, 0);
+        if (intAttrs.containsKey("page")) {
+            page = Math.max(intAttrs.get("page") - 1, 0);
         } else if (ct.getArgs().length >= 2) {
             page = Math.max(DexUtils.parseInt(ct.getArgs()[1]) - 1, 0);
         }
@@ -1711,24 +1720,26 @@ public class CommandHandler {
             page = maxpage - 1;
         }
 
-        String w = null;
-        if (attr_str.containsKey("world")) {
-            World world = Bukkit.getWorld(attr_str.get("world"));
+        String worldNameFilter = null;
+        if (strAttrs.containsKey("world")) {
+            World world = Bukkit.getWorld(strAttrs.get("world"));
             if (world != null) {
-                w = world.getName();
+                worldNameFilter = world.getName();
             }
         }
         boolean all = ct.getFlags().contains("all");
 
         int total = 0;
+        List<DexterityDisplay> filteredDisplays = new ArrayList<>();
         for (DexterityDisplay d : plugin.getDisplays()) {
-            if (d.getLabel() == null || (w != null && !d.getCenter().getWorld().getName().equals(w))) {
+            if (d.getLabel() == null || (worldNameFilter != null && !d.getCenter().getWorld().getName().equals(worldNameFilter))) {
                 continue;
             }
             if (!all && !d.isListed()) {
                 continue; //temporary display
             }
             total += d.getGroupSize();
+            filteredDisplays.add(d);
         }
         if (total == 0) {
             p.sendMessage(plugin.getConfigString("no-saved-displays"));
@@ -1738,8 +1749,8 @@ public class CommandHandler {
         p.sendMessage(plugin.getConfigString("list-page-header").replaceAll("\\Q%page%\\E", "" + (page + 1)).replaceAll("\\Q%maxpage%\\E", "" + maxpage));
         String[] strs = new String[total];
         int i = 0;
-        for (DexterityDisplay disp : plugin.getDisplays()) {
-            if (disp.getLabel() == null || (w != null && !disp.getCenter().getWorld().getName().equals(w))) {
+        for (DexterityDisplay disp : filteredDisplays) {
+            if (disp.getLabel() == null || (worldNameFilter != null && !disp.getCenter().getWorld().getName().equals(worldNameFilter))) {
                 continue;
             }
             if (!all && !disp.isListed()) {
