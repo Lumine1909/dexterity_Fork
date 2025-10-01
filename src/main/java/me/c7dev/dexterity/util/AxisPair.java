@@ -12,22 +12,9 @@ import org.joml.Vector3d;
  */
 public class AxisPair {
 
+    public static double PI2 = Math.PI / 2;
     private final Vector3d dir1;
     private final Vector3d dir2;
-
-    public static double PI2 = Math.PI / 2;
-
-    public void highlight(DexBlock db, double seconds) {
-        db.getDexterityDisplay().getPlugin().api().markerPoint(db.getLocation().add(DexUtils.vector(dir1)), Color.LIME, seconds);
-        db.getDexterityDisplay().getPlugin().api().markerPoint(db.getLocation().add(DexUtils.vector(dir2)), Color.ORANGE, seconds);
-        db.getDexterityDisplay().getPlugin().api().markerPoint(db.getLocation(), Color.BLACK, seconds);
-    }
-
-    public void highlight(Location loc, DexterityAPI api, double seconds) {
-        api.markerPoint(loc.clone().add(DexUtils.vector(dir1)), Color.LIME, seconds);
-        api.markerPoint(loc.clone().add(DexUtils.vector(dir2)), Color.ORANGE, seconds);
-        api.markerPoint(loc, Color.BLACK, seconds);
-    }
 
     public AxisPair() {
         dir1 = new Vector3d(0, 0, 1);
@@ -56,6 +43,17 @@ public class AxisPair {
         dir2 = DexUtils.vectord(x);
     }
 
+    public void highlight(DexBlock db, double seconds) {
+        db.getDexterityDisplay().getPlugin().api().markerPoint(db.getLocation().add(DexUtils.vector(dir1)), Color.LIME, seconds);
+        db.getDexterityDisplay().getPlugin().api().markerPoint(db.getLocation().add(DexUtils.vector(dir2)), Color.ORANGE, seconds);
+        db.getDexterityDisplay().getPlugin().api().markerPoint(db.getLocation(), Color.BLACK, seconds);
+    }
+
+    public void highlight(Location loc, DexterityAPI api, double seconds) {
+        api.markerPoint(loc.clone().add(DexUtils.vector(dir1)), Color.LIME, seconds);
+        api.markerPoint(loc.clone().add(DexUtils.vector(dir2)), Color.ORANGE, seconds);
+        api.markerPoint(loc, Color.BLACK, seconds);
+    }
 
     public void transform(Quaterniond q1) {
         q1.transform(dir1);

@@ -11,8 +11,8 @@ import java.util.ArrayList;
  */
 public class SimpleDisplayState {
 
-    private String label;
     public boolean setscale = false;
+    private String label;
     private Vector x = new Vector(1, 0, 0),
         y = new Vector(0, 1, 0),
         z = new Vector(0, 0, 1),
@@ -32,14 +32,14 @@ public class SimpleDisplayState {
         return label;
     }
 
+    public void setLabel(String s) {
+        label = s;
+    }
+
     public void addBlock(DexBlockState s) {
         if (s.getBlock() != null) {
             blocks.add(s);
         }
-    }
-
-    public void setLabel(String s) {
-        label = s;
     }
 
     public ArrayList<DexBlockState> getBlocks() {

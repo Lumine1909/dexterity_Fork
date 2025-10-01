@@ -47,12 +47,10 @@ public class DexterityAPI {
     private final Dexterity plugin;
     private final HashMap<UUID, Integer> pidMap = new HashMap<>();
     private final List<UUID> markerPoints = new ArrayList<>();
-    private int pid_ = Integer.MIN_VALUE + 1; //min val reserved for getOrDefault
     private final HashMap<OrientationKey, RollOffset> rollOffsets = new HashMap<>();
     private final HashMap<OrientationKey, Vector[]> axes = new HashMap<>();
     private final Vector[][] basisVecsNoRot = getBasisVecs(new Matrix3d(1, 0, 0, 0, 1, 0, 0, 0, 1));
     private final Vector eastUnit = new Vector(1, 0, 0), upUnit = new Vector(0, 1, 0), southUnit = new Vector(0, 0, 1);
-
     private final BlockFace[] faces = {
         BlockFace.UP,
         BlockFace.DOWN,
@@ -61,16 +59,7 @@ public class DexterityAPI {
         BlockFace.EAST,
         BlockFace.WEST
     };
-
-    private int getNewPID() {
-        int p = pid_;
-        if (pid_ == Integer.MAX_VALUE) {
-            pid_ = Integer.MIN_VALUE + 1;
-        } else {
-            pid_++;
-        }
-        return p;
-    }
+    private int pid_ = Integer.MIN_VALUE + 1; //min val reserved for getOrDefault
 
     public DexterityAPI(Dexterity plugin) {
         this.plugin = plugin;
@@ -105,6 +94,20 @@ public class DexterityAPI {
         }.runTaskTimer(plugin, 0, msDelete * 20L / 1000);
     }
 
+    public static DexterityAPI getInstance() {
+        return Dexterity.getPlugin(Dexterity.class).api();
+    }
+
+    private int getNewPID() {
+        int p = pid_;
+        if (pid_ == Integer.MAX_VALUE) {
+            pid_ = Integer.MIN_VALUE + 1;
+        } else {
+            pid_++;
+        }
+        return p;
+    }
+
     /**
      * Returns an instance of the plugin main class
      *
@@ -112,10 +115,6 @@ public class DexterityAPI {
      */
     public Dexterity getPlugin() {
         return plugin;
-    }
-
-    public static DexterityAPI getInstance() {
-        return Dexterity.getPlugin(Dexterity.class).api();
     }
 
     /**

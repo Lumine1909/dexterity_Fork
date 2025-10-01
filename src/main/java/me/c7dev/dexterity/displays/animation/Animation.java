@@ -9,11 +9,11 @@ import java.util.List;
 
 public class Animation {
 
+    private final DexterityDisplay display;
+    private final Dexterity plugin;
     private boolean paused = true, stop_req = false;
     private BukkitRunnable runnable, startDelay;
-    private final DexterityDisplay display;
     private List<Animation> subseq = new ArrayList<>();
-    private final Dexterity plugin;
     private int ticks = 0, delay = 0, tickCount = 0;
     private int freq = 1;
 
@@ -76,20 +76,20 @@ public class Animation {
         }
     }
 
-    public void setSubsequentAnimations(List<Animation> a) {
-        subseq = a;
-    }
-
     public List<Animation> getSubsequentAnimations() {
         return subseq;
     }
 
-    public void setFrameRate(int l) {
-        freq = l;
+    public void setSubsequentAnimations(List<Animation> a) {
+        subseq = a;
     }
 
     public int getFrameRate() {
         return freq;
+    }
+
+    public void setFrameRate(int l) {
+        freq = l;
     }
 
     public void setRunnable(BukkitRunnable r) {

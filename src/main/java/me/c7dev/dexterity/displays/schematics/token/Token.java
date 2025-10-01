@@ -11,54 +11,10 @@ import java.util.UUID;
  */
 public class Token {
 
-    public enum TokenType {
-        //for backwards compatability, the order is FINAL - add new tokens to bottom.
-        DISPLAY_DELIMITER,
-        BLOCK_DELIMITER,
-        DATA_END,
-        ASCII,
-        BLOCKDATA,
-        LABEL,
-        DX, //offset from center
-        DY,
-        DZ,
-        YAW,
-        PITCH,
-        ROLL,
-        SCALE_X,
-        SCALE_Y,
-        SCALE_Z,
-        TRANS_X, //if not implied by scale
-        TRANS_Y,
-        TRANS_Z,
-        QUAT_X,
-        QUAT_Y,
-        QUAT_Z,
-        QUAT_W,
-        ROFFSET_X,
-        ROFFSET_Y,
-        ROFFSET_Z,
-        GLOW_ARGB,
-        DISPLAY_SCALE_X,
-        DISPLAY_SCALE_Y,
-        DISPLAY_SCALE_Z,
-        DISPLAY_ROT_X1,
-        DISPLAY_ROT_X2,
-        DISPLAY_ROT_X3,
-        DISPLAY_ROT_Y1,
-        DISPLAY_ROT_Y2,
-        DISPLAY_ROT_Y3,
-        DISPLAY_ROT_Z1,
-        DISPLAY_ROT_Z2,
-        DISPLAY_ROT_Z3
-        //add any new types here
-    }
-
     private final UUID uuid = UUID.randomUUID();
     private final TokenType type;
     private BinaryTag tag;
     private int depth = 0;
-
     public Token(TokenType p) {
         type = p;
     }
@@ -112,12 +68,12 @@ public class Token {
         return tag;
     }
 
-    public TokenType getType() {
-        return type;
-    }
-
     public void setTag(BinaryTag s) {
         tag = s;
+    }
+
+    public TokenType getType() {
+        return type;
     }
 
     public int getDepth() {
@@ -130,6 +86,49 @@ public class Token {
 
     public String toString() {
         return type.toString();
+    }
+
+    public enum TokenType {
+        //for backwards compatability, the order is FINAL - add new tokens to bottom.
+        DISPLAY_DELIMITER,
+        BLOCK_DELIMITER,
+        DATA_END,
+        ASCII,
+        BLOCKDATA,
+        LABEL,
+        DX, //offset from center
+        DY,
+        DZ,
+        YAW,
+        PITCH,
+        ROLL,
+        SCALE_X,
+        SCALE_Y,
+        SCALE_Z,
+        TRANS_X, //if not implied by scale
+        TRANS_Y,
+        TRANS_Z,
+        QUAT_X,
+        QUAT_Y,
+        QUAT_Z,
+        QUAT_W,
+        ROFFSET_X,
+        ROFFSET_Y,
+        ROFFSET_Z,
+        GLOW_ARGB,
+        DISPLAY_SCALE_X,
+        DISPLAY_SCALE_Y,
+        DISPLAY_SCALE_Z,
+        DISPLAY_ROT_X1,
+        DISPLAY_ROT_X2,
+        DISPLAY_ROT_X3,
+        DISPLAY_ROT_Y1,
+        DISPLAY_ROT_Y2,
+        DISPLAY_ROT_Y3,
+        DISPLAY_ROT_Z1,
+        DISPLAY_ROT_Z2,
+        DISPLAY_ROT_Z3
+        //add any new types here
     }
 
 }

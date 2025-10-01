@@ -7,12 +7,11 @@ import org.joml.Quaternionf;
  */
 public class OrientationKey {
 
+    public static final double epsilon = 0.000001;
     private final Quaternionf q;
     private final double x;
     private final double y;
     private long lastUsed = System.currentTimeMillis();
-
-    public static final double epsilon = 0.000001;
 
     public OrientationKey(double yaw, double pitch, Quaternionf q) {
         this.q = q;

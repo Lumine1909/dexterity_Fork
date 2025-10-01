@@ -7,10 +7,10 @@ import org.bukkit.Location;
 public class RecenterTransaction implements Transaction {
 
     private final Location old_loc;
-    private Location new_loc = null;
     private final DexterityDisplay disp;
     private final boolean isUndone = false;
     private final boolean isCommitted = false;
+    private Location new_loc = null;
 
     public RecenterTransaction(DexterityDisplay d) {
         disp = d;

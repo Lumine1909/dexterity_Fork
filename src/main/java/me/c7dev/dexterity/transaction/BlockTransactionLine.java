@@ -11,8 +11,8 @@ import java.util.UUID;
  */
 public class BlockTransactionLine {
 
-    private DexBlock db;
     private final DexBlockState from;
+    private DexBlock db;
     private DexBlockState to = null; //if to is null and committed, old block was deleted
     private boolean isUndone = false, committed = false;
 

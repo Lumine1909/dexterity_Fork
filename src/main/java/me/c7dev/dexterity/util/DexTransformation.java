@@ -28,16 +28,6 @@ public class DexTransformation {
         l = trans.getLeftRotation();
     }
 
-    public DexTransformation clone() {
-        DexTransformation ret = new DexTransformation();
-        ret.setDisplacement(disp.clone());
-        ret.setLeftRotation(new Quaternionf(l.x, l.y, l.z, l.w));
-        ret.setRightRotation(new Quaternionf(r.x, r.y, r.z, r.w));
-        ret.setScale(scale.clone());
-        ret.setRollOffset(disp2.clone());
-        return ret;
-    }
-
     /**
      * Returns a transformation set so that the scale is 1 and location is in the block center
      *
@@ -64,24 +54,59 @@ public class DexTransformation {
             new AxisAngle4f(0f, 0f, 0f, 1f)));
     }
 
+    public DexTransformation clone() {
+        DexTransformation ret = new DexTransformation();
+        ret.setDisplacement(disp.clone());
+        ret.setLeftRotation(new Quaternionf(l.x, l.y, l.z, l.w));
+        ret.setRightRotation(new Quaternionf(r.x, r.y, r.z, r.w));
+        ret.setScale(scale.clone());
+        ret.setRollOffset(disp2.clone());
+        return ret;
+    }
+
     public Vector getScale() {
         return scale;
+    }
+
+    public DexTransformation setScale(Vector s) {
+        scale = s;
+        return this;
     }
 
     public Vector getDisplacement() {
         return disp;
     }
 
+    public DexTransformation setDisplacement(Vector d) {
+        disp = d;
+        return this;
+    }
+
     public Quaternionf getLeftRotation() {
         return l;
+    }
+
+    public DexTransformation setLeftRotation(Quaternionf lr) {
+        l = lr;
+        return this;
     }
 
     public Quaternionf getRightRotation() {
         return r;
     }
 
+    public DexTransformation setRightRotation(Quaternionf rr) {
+        r = rr;
+        return this;
+    }
+
     public Vector getRollOffset() {
         return disp2;
+    }
+
+    public DexTransformation setRollOffset(Vector v) {
+        disp2 = v;
+        return this;
     }
 
     /**
@@ -97,38 +122,13 @@ public class DexTransformation {
         return this;
     }
 
-    public DexTransformation setScale(Vector s) {
-        scale = s;
-        return this;
-    }
-
     public DexTransformation setScale(float x, float y, float z) {
         scale = new Vector(x, y, z);
         return this;
     }
 
-    public DexTransformation setDisplacement(Vector d) {
-        disp = d;
-        return this;
-    }
-
     public DexTransformation setDisplacement(float x, float y, float z) {
         disp = new Vector(x, y, z);
-        return this;
-    }
-
-    public DexTransformation setLeftRotation(Quaternionf lr) {
-        l = lr;
-        return this;
-    }
-
-    public DexTransformation setRightRotation(Quaternionf rr) {
-        r = rr;
-        return this;
-    }
-
-    public DexTransformation setRollOffset(Vector v) {
-        disp2 = v;
         return this;
     }
 

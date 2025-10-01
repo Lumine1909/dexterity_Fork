@@ -10,11 +10,11 @@ import java.util.List;
 
 public class RemoveTransaction implements Transaction {
 
-    private DexterityDisplay disp;
     protected List<DexBlockState> states = new ArrayList<>();
+    protected boolean isUndone = false, isCommitted = false;
+    private DexterityDisplay disp;
     private String label;
     private OfflinePlayer[] owners;
-    protected boolean isUndone = false, isCommitted = false;
 
     public RemoveTransaction(DexterityDisplay d) {
         if (d == null) {

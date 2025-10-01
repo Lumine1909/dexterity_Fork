@@ -31,7 +31,6 @@ import org.joml.Vector3f;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,36 +39,24 @@ import java.util.UUID;
  */
 public class DexSession {
 
-    public enum EditType {
-        TRANSLATE,
-        CLONE,
-        CLONE_MERGE,
-    }
-
-    public enum AxisType {
-        SCALE,
-        ROTATE
-    }
-
     private final Player p;
+    private final Dexterity plugin;
+    private final ArrayDeque<Transaction> toUndo = new ArrayDeque<>();
+    private final ArrayDeque<Transaction> toRedo = new ArrayDeque<>(); //push/pop from first element
     private Location l1, l2;
     private DexterityDisplay selected, secondary;
-    private final Dexterity plugin;
     private Vector3f editingScale;
     private Vector following, l1ScaleOffset, l2ScaleOffset;
     private EditType editType;
     private Transaction editTransaction;
     private Location origLoc;
     private double volume = 0;
-    private final ArrayDeque<Transaction> toUndo = new ArrayDeque<>();
-    private final ArrayDeque<Transaction> toRedo = new ArrayDeque<>(); //push/pop from first element
     private BuildTransaction buildTrans;
     private Mask mask;
     private boolean cancelPhysics = false, sentClickMsg = false;
     private BlockDisplay[] axisX, axisY, axisZ;
     private AxisType showingAxis = null;
     private BukkitRunnable actionbarRunnable;
-
     /**
      * Initializes a new session for a player
      *
@@ -133,6 +120,60 @@ public class DexSession {
 
     public Mask getMask() {
         return mask;
+    }
+
+    public void setMask(Mask mask) {
+        this.mask = mask;
+        selectFromLocations();
+
+        if (actionbarRunnable != null && !actionbarRunnable.isCancelled()) {
+            actionbarRunnable.cancel();
+            actionbarRunnable = null;
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§b"));
+        }
+
+        if (mask != null) {
+            if (selected != null && !selected.isSaved()) {
+                DexterityDisplay s = new DexterityDisplay(plugin, selected.getCenter(), selected.getScale());
+                List<DexBlock> dblocks = new ArrayList<>();
+                for (DexBlock db : selected.getBlocks()) {
+                    if (mask.isAllowed(db.getEntity().getBlock().getMaterial())) {
+                        dblocks.add(db);
+                    }
+                }
+                if (dblocks.size() == s.getBlocks().length) {
+                    selectFromLocations();
+                }
+
+                if (dblocks.size() == 0) {
+                    setSelected(null, false);
+                } else {
+                    s.setBlocks(dblocks, true);
+                    highlightSelected(s);
+                    setSelected(s, false);
+                }
+            }
+
+            String maskNum = (mask.isNegative() ? "(-) " : "") + mask.getBlocks().size();
+            String abMsg = plugin.getConfigString("mask-enabled")
+                .replaceAll("\\Q%material_count%\\E", maskNum)
+                .replaceAll("\\Q(s)\\E", mask.getBlocks().size() == 1 ? "" : "s");
+
+            if (!abMsg.isEmpty()) {
+                actionbarRunnable = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (!p.isOnline()) {
+                            this.cancel();
+                            actionbarRunnable = null;
+                        } else {
+                            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(abMsg));
+                        }
+                    }
+                };
+                actionbarRunnable.runTaskTimer(plugin, 0, 20L);
+            }
+        }
     }
 
     public DexterityDisplay getSelected() {
@@ -706,13 +747,13 @@ public class DexSession {
         }
     }
 
+    public boolean isShowingAxes() {
+        return showingAxis != null;
+    }
+
     public void setShowingAxes(AxisType a) {
         showingAxis = a;
         updateAxisDisplays();
-    }
-
-    public boolean isShowingAxes() {
-        return showingAxis != null;
     }
 
     public AxisType getShowingAxisType() {
@@ -768,63 +809,20 @@ public class DexSession {
         plugin.api().tempHighlight(newDisp, 30);
     }
 
-    public void setMask(Mask mask) {
-        this.mask = mask;
-        selectFromLocations();
-
-        if (actionbarRunnable != null && !actionbarRunnable.isCancelled()) {
-            actionbarRunnable.cancel();
-            actionbarRunnable = null;
-            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§b"));
-        }
-
-        if (mask != null) {
-            if (selected != null && !selected.isSaved()) {
-                DexterityDisplay s = new DexterityDisplay(plugin, selected.getCenter(), selected.getScale());
-                List<DexBlock> dblocks = new ArrayList<>();
-                for (DexBlock db : selected.getBlocks()) {
-                    if (mask.isAllowed(db.getEntity().getBlock().getMaterial())) {
-                        dblocks.add(db);
-                    }
-                }
-                if (dblocks.size() == s.getBlocks().length) {
-                    selectFromLocations();
-                }
-
-                if (dblocks.size() == 0) {
-                    setSelected(null, false);
-                } else {
-                    s.setBlocks(dblocks, true);
-                    highlightSelected(s);
-                    setSelected(s, false);
-                }
-            }
-
-            String maskNum = (mask.isNegative() ? "(-) " : "") + mask.getBlocks().size();
-            String abMsg = plugin.getConfigString("mask-enabled")
-                .replaceAll("\\Q%material_count%\\E", maskNum)
-                .replaceAll("\\Q(s)\\E", mask.getBlocks().size() == 1 ? "" : "s");
-
-            if (!abMsg.isEmpty()) {
-                actionbarRunnable = new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (!p.isOnline()) {
-                            this.cancel();
-                            actionbarRunnable = null;
-                        } else {
-                            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(abMsg));
-                        }
-                    }
-                };
-                actionbarRunnable.runTaskTimer(plugin, 0, 20L);
-            }
-        }
-    }
-
     public void clearLocationSelection() {
         l1 = null;
         l2 = null;
+    }
+
+    public enum EditType {
+        TRANSLATE,
+        CLONE,
+        CLONE_MERGE,
+    }
+
+    public enum AxisType {
+        SCALE,
+        ROTATE
     }
 
 }

@@ -12,21 +12,14 @@ import org.bukkit.util.Vector;
 
 public class RideAnimation extends Animation implements RideableAnimation {
 
-    public enum LookMode {
-        NONE,
-        YAW_ONLY,
-        YAW_PITCH,
-    }
-
     private final Location start_loc;
-    private double speed = 2.0 / 20;
     private final double seat_y_offset = -1.34;
+    private double speed = 2.0 / 20;
     private boolean x_enabled = true, y_enabled = true, z_enabled = true, teleport_when_done = false;
     private LookMode look_mode = LookMode.YAW_ONLY;
     private Snowball mount;
     private Player p;
     private Vector seat_offset = new Vector(0, seat_y_offset, 0);
-
     public RideAnimation(DexterityDisplay display) {
         super(display, 1);
 
@@ -137,12 +130,12 @@ public class RideAnimation extends Animation implements RideableAnimation {
         z_enabled = b;
     }
 
-    public void setSpeed(double blocks_per_second) {
-        speed = blocks_per_second / 20;
-    }
-
     public double getSpeed() {
         return 20 * speed;
+    }
+
+    public void setSpeed(double blocks_per_second) {
+        speed = blocks_per_second / 20;
     }
 
     public void setTeleportBackOnDismount(boolean b) {
@@ -153,6 +146,10 @@ public class RideAnimation extends Animation implements RideableAnimation {
         look_mode = lm;
     }
 
+    public Vector getSeatOffset() {
+        return seat_offset;
+    }
+
     public void setSeatOffset(Vector v) {
         v.setY(v.getY() + seat_y_offset);
         Vector diff = v.clone().subtract(seat_offset);
@@ -160,10 +157,6 @@ public class RideAnimation extends Animation implements RideableAnimation {
             mount.teleport(mount.getLocation().add(diff));
         }
         seat_offset = v;
-    }
-
-    public Vector getSeatOffset() {
-        return seat_offset;
     }
 
     @Override
@@ -176,5 +169,11 @@ public class RideAnimation extends Animation implements RideableAnimation {
         if (teleport_when_done) {
             getDisplay().teleport(start_loc);
         }
+    }
+
+    public enum LookMode {
+        NONE,
+        YAW_ONLY,
+        YAW_PITCH,
     }
 }

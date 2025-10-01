@@ -17,14 +17,13 @@ import java.util.UUID;
  */
 public class DexBlock {
 
-    private UUID uuid;
+    public static final int TELEPORT_DURATION = 2;
     private final BlockDisplay entity;
+    private UUID uuid;
     private DexTransformation trans;
     private DexterityDisplay disp;
     private float roll = 0;
     private Vector tempv;
-
-    public static final int TELEPORT_DURATION = 2;
 
     /**
      * Convert a block into block display
@@ -230,14 +229,6 @@ public class DexBlock {
         tempv = v;
     }
 
-    @Deprecated
-    public void setDexterityDisplay(DexterityDisplay d) {
-        if (d == null) {
-            return;
-        }
-        disp = d;
-    }
-
     /**
      * Gets the roll in degrees. Yaw and pitch can be retrieved from the entity's location
      *
@@ -267,8 +258,26 @@ public class DexBlock {
         return disp;
     }
 
+    @Deprecated
+    public void setDexterityDisplay(DexterityDisplay d) {
+        if (d == null) {
+            return;
+        }
+        disp = d;
+    }
+
     public DexTransformation getTransformation() {
         return trans;
+    }
+
+    /**
+     * Sets the transformation wrapper and updates the entity
+     *
+     * @param dt
+     */
+    public void setTransformation(DexTransformation dt) {
+        trans = dt;
+        entity.setTransformation(dt.build());
     }
 
     public DexBlockState getState() {
@@ -289,16 +298,6 @@ public class DexBlock {
         entity.teleport(state.getLocation());
         entity.setTransformation(state.getTransformation().build());
         entity.setBlock(state.getBlock());
-    }
-
-    /**
-     * Sets the transformation wrapper and updates the entity
-     *
-     * @param dt
-     */
-    public void setTransformation(DexTransformation dt) {
-        trans = dt;
-        entity.setTransformation(dt.build());
     }
 
     /**

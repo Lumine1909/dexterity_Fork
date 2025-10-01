@@ -9,15 +9,20 @@ import org.bukkit.event.HandlerList;
 
 public class SessionSelectionChangeEvent extends Event implements Cancellable {
 
+    private static final HandlerList handlers = new HandlerList();
     private final DexterityDisplay from;
     private final DexterityDisplay to;
-    private boolean cancelled = false;
     private final DexSession session;
+    private boolean cancelled = false;
 
     public SessionSelectionChangeEvent(DexSession session, DexterityDisplay from, DexterityDisplay to) {
         this.from = from;
         this.to = to;
         this.session = session;
+    }
+
+    static public HandlerList getHandlerList() {
+        return handlers;
     }
 
     /**
@@ -54,13 +59,7 @@ public class SessionSelectionChangeEvent extends Event implements Cancellable {
         cancelled = b;
     }
 
-    private static final HandlerList handlers = new HandlerList();
-
     public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    static public HandlerList getHandlerList() {
         return handlers;
     }
 }

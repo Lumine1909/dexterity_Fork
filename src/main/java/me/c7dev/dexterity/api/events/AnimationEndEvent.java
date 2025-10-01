@@ -8,6 +8,7 @@ import org.bukkit.event.HandlerList;
 
 public class AnimationEndEvent extends Event {
 
+    private static final HandlerList handlers = new HandlerList();
     private final Player p;
     private final Animation a;
 
@@ -22,6 +23,10 @@ public class AnimationEndEvent extends Event {
         a = a_;
     }
 
+    static public HandlerList getHandlerList() {
+        return handlers;
+    }
+
     public Player getPlayer() {
         return p;
     }
@@ -34,13 +39,7 @@ public class AnimationEndEvent extends Event {
         return a.getDisplay();
     }
 
-    private static final HandlerList handlers = new HandlerList();
-
     public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    static public HandlerList getHandlerList() {
         return handlers;
     }
 }

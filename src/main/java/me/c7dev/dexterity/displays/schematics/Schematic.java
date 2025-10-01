@@ -27,7 +27,6 @@ import java.io.FileReader;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -35,23 +34,15 @@ import java.util.List;
  */
 public class Schematic {
 
-    private String author = null;
     private final String fileName;
+    private final List<SimpleDisplayState> displays = new ArrayList<>();
+    private final Dexterity plugin;
+    private String author = null;
     private int version = 0;
     private HuffmanTree root = new HuffmanTree(null, null);
     private List<Token> data = new ArrayList<>();
     private boolean loaded = false;
-    private final List<SimpleDisplayState> displays = new ArrayList<>();
-    private final Dexterity plugin;
     private MessageDigest sha256;
-
-    private enum DecodeState {
-        NOT_STARTED,
-        SEEK_TAG_LENGTH,
-        SEEK_TYPE, //or len digits
-        GET_TAG,
-        SEEK_VALUE, //until delimiter
-    }
 
     public Schematic(Dexterity plugin, String file_name) {
         this.fileName = file_name;
@@ -231,7 +222,8 @@ public class Schematic {
         HuffmanTree curr = root;
 
         DecodeState state = DecodeState.NOT_STARTED;
-        int taglen = 0, tagread_index = 0;;
+        int taglen = 0, tagread_index = 0;
+        ;
         TokenType type = null;
         StringBuilder val = new StringBuilder();
         BinaryTag tagread = null;
@@ -425,15 +417,15 @@ public class Schematic {
                     case ROLL -> blockState.setRoll((float) val);
                     case SCALE_X -> {
                         blockState.getTransformation().getScale().setX(val);
-                        blockState.getTransformation().getDisplacement().setX(-0.5*val);
+                        blockState.getTransformation().getDisplacement().setX(-0.5 * val);
                     }
                     case SCALE_Y -> {
                         blockState.getTransformation().getScale().setY(val);
-                        blockState.getTransformation().getDisplacement().setY(-0.5*val);
+                        blockState.getTransformation().getDisplacement().setY(-0.5 * val);
                     }
                     case SCALE_Z -> {
                         blockState.getTransformation().getScale().setZ(val);
-                        blockState.getTransformation().getDisplacement().setZ(-0.5*val);
+                        blockState.getTransformation().getDisplacement().setZ(-0.5 * val);
                     }
                     case TRANS_X -> blockState.getTransformation().getDisplacement().setX(val);
                     case TRANS_Y -> blockState.getTransformation().getDisplacement().setY(val);
@@ -458,13 +450,15 @@ public class Schematic {
                     case DISPLAY_ROT_Z1 -> workingDisplay.getRotationZ().setX(val);
                     case DISPLAY_ROT_Z2 -> workingDisplay.getRotationZ().setY(val);
                     case DISPLAY_ROT_Z3 -> workingDisplay.getRotationZ().setZ(val);
-                    default -> {}
+                    default -> {
+                    }
                 }
             } else if (t instanceof StringToken st) {
                 switch (t.getType()) {
                     case BLOCKDATA -> blockState.setBlock(Bukkit.createBlockData(st.getStringValue()));
                     case LABEL -> workingDisplay.setLabel(plugin.getNextLabel(st.getStringValue()));
-                    default -> {}
+                    default -> {
+                    }
                 }
             }
 
@@ -541,6 +535,14 @@ public class Schematic {
         }
 
         return d;
+    }
+
+    private enum DecodeState {
+        NOT_STARTED,
+        SEEK_TAG_LENGTH,
+        SEEK_TYPE, //or len digits
+        GET_TAG,
+        SEEK_VALUE, //until delimiter
     }
 
 }

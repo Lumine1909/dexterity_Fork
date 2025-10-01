@@ -10,10 +10,10 @@ import java.util.UUID;
 
 public class BuildTransaction implements Transaction {
 
+    private final DexterityDisplay disp;
     private List<DexBlock> blocks = new ArrayList<>();
     private List<DexBlockState> states = new ArrayList<>();
     private boolean isUndone = false, isCommitted = false;
-    private final DexterityDisplay disp;
 
     public BuildTransaction(DexterityDisplay d) {
         this.disp = d;

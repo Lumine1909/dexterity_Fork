@@ -3,7 +3,6 @@ package me.c7dev.dexterity.util;
 import org.bukkit.Material;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,12 +48,12 @@ public class Mask {
         return s.toString();
     }
 
-    public void setNegative(boolean b) {
-        negative = b;
-    }
-
     public boolean isNegative() {
         return negative;
+    }
+
+    public void setNegative(boolean b) {
+        negative = b;
     }
 
     public List<Material> getBlocks() {

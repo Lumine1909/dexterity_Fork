@@ -10,10 +10,10 @@ import java.util.List;
 
 public class ConvertTransaction implements Transaction {
 
-    private boolean isCommitted = false, isUndone = false;
     private final List<SavedBlockState> blocks = new ArrayList<>();
     private final List<DexBlock> dexblocks = new ArrayList<>();
     private final DexterityDisplay disp = null;
+    private boolean isCommitted = false, isUndone = false;
 
     public ConvertTransaction() {
     }

@@ -7,12 +7,17 @@ import org.bukkit.event.HandlerList;
 
 public class TransactionEvent extends Event {
 
+    private static final HandlerList handlers = new HandlerList();
     private final Transaction t;
     private final DexSession s;
 
     public TransactionEvent(DexSession session, Transaction transaction) {
         s = session;
         t = transaction;
+    }
+
+    static public HandlerList getHandlerList() {
+        return handlers;
     }
 
     public Transaction getTransaction() {
@@ -23,13 +28,7 @@ public class TransactionEvent extends Event {
         return s;
     }
 
-    private static final HandlerList handlers = new HandlerList();
-
     public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    static public HandlerList getHandlerList() {
         return handlers;
     }
 }

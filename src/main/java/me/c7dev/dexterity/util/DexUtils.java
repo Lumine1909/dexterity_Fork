@@ -30,6 +30,9 @@ import java.util.List;
  */
 public class DexUtils {
 
+    //Using for faster implementation: https://stackoverflow.com/questions/9655181/java-convert-a-byte-array-to-a-hex-string
+    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+
     public static ItemStack createItem(Material material, int amount, String name, String... lore) {
         ItemStack item = new ItemStack(material, amount);
         ItemMeta meta = item.getItemMeta();
@@ -369,9 +372,6 @@ public class DexUtils {
         }
         return r;
     }
-
-    //Using for faster implementation: https://stackoverflow.com/questions/9655181/java-convert-a-byte-array-to-a-hex-string
-    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
 
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];

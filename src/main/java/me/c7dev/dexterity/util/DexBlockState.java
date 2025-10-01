@@ -10,8 +10,8 @@ import java.util.UUID;
 public class DexBlockState {
 
     private final Location loc;
-    private UUID uuid;
     private final DexTransformation trans;
+    private UUID uuid;
     private BlockData block;
     private DexterityDisplay disp;
     private float roll;
@@ -74,10 +74,6 @@ public class DexBlockState {
         disp = d;
     }
 
-    public void setRoll(float f) {
-        roll = f;
-    }
-
     public Color getGlow() {
         return glow;
     }
@@ -88,6 +84,10 @@ public class DexBlockState {
 
     public float getRoll() {
         return roll;
+    }
+
+    public void setRoll(float f) {
+        roll = f;
     }
 
 }

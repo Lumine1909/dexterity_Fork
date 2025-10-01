@@ -7,6 +7,7 @@ import org.bukkit.event.HandlerList;
 
 public class DisplayTranslationEvent extends Event {
 
+    private static final HandlerList handlers = new HandlerList();
     private final DexterityDisplay d;
     private final Location from;
     private final Location to;
@@ -24,6 +25,10 @@ public class DisplayTranslationEvent extends Event {
         d = display;
     }
 
+    static public HandlerList getHandlerList() {
+        return handlers;
+    }
+
     public DexterityDisplay getDisplay() {
         return d;
     }
@@ -36,13 +41,7 @@ public class DisplayTranslationEvent extends Event {
         return to.clone();
     }
 
-    private static final HandlerList handlers = new HandlerList();
-
     public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    static public HandlerList getHandlerList() {
         return handlers;
     }
 }

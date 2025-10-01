@@ -14,11 +14,12 @@ import org.bukkit.util.Vector;
 
 public class PlayerClickBlockDisplayEvent extends Event implements Cancellable {
 
+    private static final HandlerList handlers = new HandlerList();
     private final Player player_;
     private final ClickedBlockDisplay clicked_;
     private final Action action_;
-    private boolean cancelled = false;
     private final DexterityDisplay display_;
+    private boolean cancelled = false;
 
     /**
      * Event called when a player has clicked a block display entity
@@ -28,6 +29,10 @@ public class PlayerClickBlockDisplayEvent extends Event implements Cancellable {
         clicked_ = clicked;
         action_ = action;
         display_ = display;
+    }
+
+    static public HandlerList getHandlerList() {
+        return handlers;
     }
 
     /**
@@ -88,6 +93,10 @@ public class PlayerClickBlockDisplayEvent extends Event implements Cancellable {
         return cancelled;
     }
 
+    public void setCancelled(boolean b) {
+        cancelled = b;
+    }
+
     /**
      * Returns a Vector that is perpendicular to the surface of the face of the block
      *
@@ -115,17 +124,7 @@ public class PlayerClickBlockDisplayEvent extends Event implements Cancellable {
         return clicked_.getOffsetFromFaceCenter();
     }
 
-    public void setCancelled(boolean b) {
-        cancelled = b;
-    }
-
-    private static final HandlerList handlers = new HandlerList();
-
     public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    static public HandlerList getHandlerList() {
         return handlers;
     }
 }

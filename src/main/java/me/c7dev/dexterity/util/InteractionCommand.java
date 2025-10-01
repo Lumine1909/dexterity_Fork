@@ -59,16 +59,16 @@ public class InteractionCommand {
         this.player = player;
     }
 
+    public String getPermission() {
+        return perm;
+    }
+
     public void setPermission(String s) {
         if (s.length() > 0) {
             perm = s;
         } else {
             perm = null;
         }
-    }
-
-    public String getPermission() {
-        return perm;
     }
 
     public void exec(Player p, boolean right_click) {

@@ -42,10 +42,13 @@ public class HuffmanTree {
         return freq;
     }
 
+    public void setFrequency(int f) {
+        freq = f;
+    }
+
     public HuffmanTree getLeft() {
         return left;
     }
-
 
     public void setLeft(HuffmanTree l) {
         if (leaf != null) {
@@ -55,16 +58,6 @@ public class HuffmanTree {
             throw new DexterityException("Cannot reset left when already defined!");
         }
         left = l;
-    }
-
-    public void setRight(HuffmanTree r) {
-        if (leaf != null) {
-            throw new DexterityException("Invalid tag: " + leaf);
-        }
-        if (right != null) {
-            throw new DexterityException("Cannot reset right when already defined!");
-        }
-        right = r;
     }
 
     public void setLeaf(Token leaf) {
@@ -78,8 +71,14 @@ public class HuffmanTree {
         return right;
     }
 
-    public void setFrequency(int f) {
-        freq = f;
+    public void setRight(HuffmanTree r) {
+        if (leaf != null) {
+            throw new DexterityException("Invalid tag: " + leaf);
+        }
+        if (right != null) {
+            throw new DexterityException("Cannot reset right when already defined!");
+        }
+        right = r;
     }
 
     public Token getLeafToken() {

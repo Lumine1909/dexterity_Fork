@@ -8,9 +8,10 @@ import org.joml.Quaterniond;
 
 public class DisplayRotationEvent extends Event implements Cancellable {
 
-    private boolean cancelled = false;
+    private static final HandlerList handlers = new HandlerList();
     private final DexterityDisplay d;
     private final Quaterniond q;
+    private boolean cancelled = false;
 
     /**
      * Event called when a selection is rotated, such as with a command or the API
@@ -21,6 +22,10 @@ public class DisplayRotationEvent extends Event implements Cancellable {
     public DisplayRotationEvent(DexterityDisplay display, Quaterniond rotation) {
         d = display;
         q = rotation;
+    }
+
+    static public HandlerList getHandlerList() {
+        return handlers;
     }
 
     public DexterityDisplay getDisplay() {
@@ -43,13 +48,7 @@ public class DisplayRotationEvent extends Event implements Cancellable {
         cancelled = b;
     }
 
-    private static final HandlerList handlers = new HandlerList();
-
     public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    static public HandlerList getHandlerList() {
         return handlers;
     }
 }

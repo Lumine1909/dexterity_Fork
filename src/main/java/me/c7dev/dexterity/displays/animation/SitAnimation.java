@@ -70,6 +70,10 @@ public class SitAnimation extends Animation implements RideableAnimation, Listen
         }
     }
 
+    public Vector getSeatOffset() {
+        return seatOffset.clone().subtract(new Vector(0, seatOffsetY, 0));
+    }
+
     public void setSeatOffset(Vector v) {
         v = v.clone();
         v.setY(v.getY() + seatOffsetY);
@@ -78,10 +82,6 @@ public class SitAnimation extends Animation implements RideableAnimation, Listen
             mount.teleport(mount.getLocation().add(diff));
         }
         seatOffset = v;
-    }
-
-    public Vector getSeatOffset() {
-        return seatOffset.clone().subtract(new Vector(0, seatOffsetY, 0));
     }
 
     @EventHandler

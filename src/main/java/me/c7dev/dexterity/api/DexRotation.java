@@ -21,7 +21,6 @@ import org.joml.Vector3d;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,18 +29,17 @@ import java.util.UUID;
  */
 public class DexRotation {
 
+    public static final double cutoff = 0.000001;
     private final HashMap<Vector, Vector> dirs = new HashMap<>();
     private final HashMap<Vector, AxisPair> axisPairs = new HashMap<>();
     private final DexterityDisplay d;
+    private final List<BlockDisplay> points = new ArrayList<>();
+    private final ArrayDeque<QueuedRotation> queue = new ArrayDeque<>();
     private Vector3d x = new Vector3d(1, 0, 0), y = new Vector3d(0, 1, 0), z = new Vector3d(0, 0, 1);
     private QueuedRotation last = null;
     private double baseX = 0, baseY = 0, baseZ = 0, basePitch = 0, baseRoll = 0, baseYaw = 0;
-    private final List<BlockDisplay> points = new ArrayList<>();
     private RotationTransaction t = null;
-    private final ArrayDeque<QueuedRotation> queue = new ArrayDeque<>();
     private boolean processing = false;
-
-    public static final double cutoff = 0.000001;
 
     /**
      * Manages all rotations and data used for rotations for a specific DexterityDisplay

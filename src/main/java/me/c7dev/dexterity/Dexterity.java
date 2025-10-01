@@ -45,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -60,12 +59,12 @@ import java.util.regex.Pattern;
  */
 public class Dexterity extends JavaPlugin {
 
+    public static final String defaultLangName = "en-US.yml";
     private final HashMap<String, DexterityDisplay> displays = new HashMap<>();
     private final HashMap<UUID, DexSession> sessions = new HashMap<>();
     private final HashMap<UUID, DexBlock> displayMap = new HashMap<>();
     private final HashMap<UUID, String> unloadedUUIDs = new HashMap<>();
     private FileConfiguration lang, defaultLang;
-
     private String chatColor, chatColor2, chatColor3;
     private DexterityAPI api;
     private int maxVolume = 25000;
@@ -73,7 +72,10 @@ public class Dexterity extends JavaPlugin {
     private boolean legacy = false, hasUnloadedDisplays = false;
     private Material wandItem;
 
-    public static final String defaultLangName = "en-US.yml";
+    public static DexterityAPI getAPI() {
+        Dexterity plugin = Dexterity.getPlugin(Dexterity.class);
+        return plugin.api();
+    }
 
     @Override
     public void onEnable() {
@@ -137,11 +139,6 @@ public class Dexterity extends JavaPlugin {
 
     public DexterityAPI api() {
         return api;
-    }
-
-    public static DexterityAPI getAPI() {
-        Dexterity plugin = Dexterity.getPlugin(Dexterity.class);
-        return plugin.api();
     }
 
     public String getChatColor() {

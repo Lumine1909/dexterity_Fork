@@ -1,6 +1,7 @@
 package me.c7dev.dexterity.displays.schematics;
 
 import me.c7dev.dexterity.Dexterity;
+import me.c7dev.dexterity.api.DexRotation;
 import me.c7dev.dexterity.displays.DexterityDisplay;
 import me.c7dev.dexterity.displays.schematics.token.CharToken;
 import me.c7dev.dexterity.displays.schematics.token.DoubleKey;

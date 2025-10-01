@@ -29,7 +29,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.joml.Matrix3d;
@@ -50,20 +49,19 @@ import java.util.UUID;
 public class DexterityDisplay {
 
     private final Dexterity plugin;
+    private final UUID uuid = UUID.randomUUID();
+    private final List<Animation> animations = new ArrayList<>();
+    private final List<DexterityDisplay> subdisplays = new ArrayList<>();
+    private final List<InteractionCommand> cmds = new ArrayList<>();
     private Location center;
     private String label, itemSchemLabel;
     private Vector scale;
     private DexterityDisplay parent;
     private boolean startedAnimations = false, zeroPitch = false, listed = true;
-    private final UUID uuid = UUID.randomUUID();
     private UUID editingLock;
     private DexRotation rot = null;
     private ItemStack item;
-
     private List<DexBlock> blocks = new ArrayList<>();
-    private final List<Animation> animations = new ArrayList<>();
-    private final List<DexterityDisplay> subdisplays = new ArrayList<>();
-    private final List<InteractionCommand> cmds = new ArrayList<>();
     private List<UUID> owners = new ArrayList<>();
 
     /**
@@ -120,6 +118,20 @@ public class DexterityDisplay {
         setOwners(owners);
     }
 
+    /**
+     * Retrieves the root node of the sub-display tree of a display
+     *
+     * @param d
+     * @return the root display node
+     */
+    public static DexterityDisplay rootDisplay(DexterityDisplay d) {
+        if (d.getParent() == null) {
+            return d;
+        } else {
+            return rootDisplay(d.getParent());
+        }
+    }
+
     public UUID getUniqueId() {
         return uuid;
     }
@@ -141,6 +153,15 @@ public class DexterityDisplay {
     }
 
     /**
+     * Checks if display is listed on normal list
+     *
+     * @return true if display will show on the saved display list (/d list), or false if display is only intended to be temporary.
+     */
+    public boolean isListed() {
+        return listed && label != null;
+    }
+
+    /**
      * Set to false to hide display from /d list. All saved displays are listed by default
      *
      * @param b
@@ -150,15 +171,6 @@ public class DexterityDisplay {
         for (DexterityDisplay d : subdisplays) {
             d.setListed(b);
         }
-    }
-
-    /**
-     * Checks if display is listed on normal list
-     *
-     * @return true if display will show on the saved display list (/d list), or false if display is only intended to be temporary.
-     */
-    public boolean isListed() {
-        return listed && label != null;
     }
 
     public double getYaw() {
@@ -525,6 +537,27 @@ public class DexterityDisplay {
     }
 
     /**
+     * Set the scale
+     *
+     * @param s Representing x, y, and z scale
+     */
+    public void setScale(double s) {
+        setScale(new Vector(s, s, s));
+    }
+
+    /**
+     * Set the skew for x, y, and z, respectively
+     *
+     * @param s
+     */
+    public void setScale(Vector s) {
+        if (s.getX() == 0 || s.getY() == 0 || s.getZ() == 0) {
+            return;
+        }
+        scale(new Vector(s.getX() / scale.getX(), s.getY() / scale.getY(), s.getZ() / scale.getZ()));
+    }
+
+    /**
      * Sets the item that will be dropped if a player breaks the display
      *
      * @param item
@@ -675,20 +708,6 @@ public class DexterityDisplay {
      */
     public DexterityDisplay getRootDisplay() {
         return rootDisplay(this);
-    }
-
-    /**
-     * Retrieves the root node of the sub-display tree of a display
-     *
-     * @param d
-     * @return the root display node
-     */
-    public static DexterityDisplay rootDisplay(DexterityDisplay d) {
-        if (d.getParent() == null) {
-            return d;
-        } else {
-            return rootDisplay(d.getParent());
-        }
     }
 
     /**
@@ -932,10 +951,6 @@ public class DexterityDisplay {
         return center.clone();
     }
 
-    public World getWorld() {
-        return center.getWorld();
-    }
-
     /**
      * Sets the center of the display
      *
@@ -946,6 +961,10 @@ public class DexterityDisplay {
             throw new IllegalArgumentException("Cannot recenter into a different world!");
         }
         center = loc.clone();
+    }
+
+    public World getWorld() {
+        return center.getWorld();
     }
 
     /**
@@ -1079,33 +1098,13 @@ public class DexterityDisplay {
 
     /**
      * Reset the direction axes to the specified x, y, and z orthonormal vectors
+     *
      * @param x
      * @param y
      * @param z
      */
     public void setBaseRotation(Vector x, Vector y, Vector z) {
         rot = new DexRotation(this, x, y, z);
-    }
-
-    /**
-     * Set the scale
-     *
-     * @param s Representing x, y, and z scale
-     */
-    public void setScale(double s) {
-        setScale(new Vector(s, s, s));
-    }
-
-    /**
-     * Set the skew for x, y, and z, respectively
-     *
-     * @param s
-     */
-    public void setScale(Vector s) {
-        if (s.getX() == 0 || s.getY() == 0 || s.getZ() == 0) {
-            return;
-        }
-        scale(new Vector(s.getX() / scale.getX(), s.getY() / scale.getY(), s.getZ() / scale.getZ()));
     }
 
     /**
